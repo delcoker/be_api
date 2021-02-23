@@ -1,24 +1,24 @@
 from sqlalchemy.orm import Session
 
-from core import models
+from core.models import users
 from core.schemas import user_schemas
 
 
 def get_user(db: Session, user_id: int):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+    return db.query(users.User).filter(users.User.id == user_id).first()
 
 
 def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
+    return db.query(users.User).filter(users.User.email == email).first()
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.User).offset(skip).limit(limit).all()
+    return db.query(users.User).offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user: user_schemas.UserCreate):
     fake_hashed_password = user.password + "notreallyhashed"
-    db_user = models.User(
+    db_user = users.User(
         first_name=user.first_name,
         last_name=user.last_name,
         phone=user.phone,
