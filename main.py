@@ -3,7 +3,7 @@ from typing import List
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
 
-import crud
+from controllers import crud
 from core.schemas import user_schemas
 from core.models import users
 from core.models.database import SessionLocal, engine
