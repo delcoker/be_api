@@ -2,8 +2,9 @@ from sqlalchemy.orm import Session
 # Import model and schemas from other folders
 from core.models import users
 from core.schemas import user_schemas
-# Import JWT and authentication dependencies needed
+# Import OAuth2 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+# Import JWT and authentication dependencies needed
 from jose import JWTError, jwt
 # Allowing you to use different hashing algorithms
 from passlib.context import CryptContext
@@ -24,7 +25,8 @@ ALGORITHM = "HS256"
 # Hash password coming from user
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+# Instance of OAuth2PasswordBearer
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token") # URL that the client will use to send details in order to get a token
 
 # Utility to verify if a received password matches the hash stored
 def verify_password(plain_password, hashed_password):
@@ -35,8 +37,12 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 # Retrieve a user based on their email
-def get_user(db, email: str):
-    return db.query(users.User).filter(users.User.email==email)
+# def get_user(db: Session, email: str):
+#     return db.query(users.User).filter(users.User.email==email)
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(users.User).filter(users.User.email == email).first()
+
 
 def create_user(db: Session, user: user_schemas.UserCreate):
     db_user = users.User(
@@ -44,18 +50,18 @@ def create_user(db: Session, user: user_schemas.UserCreate):
         last_name=user.last_name,
         phone=user.phone,
         email=user.email,
-        hashed_password=get_password_hash(user.password))
+        password=get_password_hash(user.password))
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
     return db_user
 
 # Authenticate and return a user
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(db: Session, email: str, password: str):
+    user = get_user_by_email(db, email)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.password):
         return False
     return user
 
@@ -73,11 +79,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 # def get_user(db: Session, user_id: int):
 #     return db.query(users.User).filter(users.User.id == user_id).first()
-
-
-# def get_user_by_email(db: Session, email: str):
-#     return db.query(users.User).filter(users.User.email == email).first()
-
 
 # def get_users(db: Session, skip: int = 0, limit: int = 100):
 #     return db.query(users.User).offset(skip).limit(limit).all()
