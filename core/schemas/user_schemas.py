@@ -18,7 +18,7 @@ class UserBase(BaseModel):
     phone: str
 
 class UserInDB(UserBase):
-    hashed_password: str
+    password: str
 
 class UserCreate(UserBase):
     # first_name: str

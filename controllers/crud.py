@@ -2,8 +2,11 @@ from sqlalchemy.orm import Session
 # Import model and schemas from other folders
 from core.models import users
 from core.schemas import user_schemas
+from core.models.database import SessionLocal, engine
+
 # Import OAuth2 
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import Depends, HTTPException, status
 # Import JWT and authentication dependencies needed
 from jose import JWTError, jwt
 # Allowing you to use different hashing algorithms
@@ -16,6 +19,16 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 load_dotenv()
+
+# Dependency
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -75,6 +88,28 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+# def get_current_user(token: str = Depends(oauth2_scheme)):3
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY,
+                             algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        # token_data = TokenData(username=username)
+        token_data = email
+    except JWTError:
+        raise credentials_exception
+    user = get_user_by_email(db, email=token_data)
+    if user is None:
+        raise credentials_exception
+    return user
 
 
 # def get_user(db: Session, user_id: int):

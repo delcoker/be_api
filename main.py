@@ -8,7 +8,7 @@ from core.schemas import user_schemas
 from core.models import users
 from core.models.database import SessionLocal, engine
 # Import JWT and authentication dependencies needed
-from jose import JWTError, jwt
+from jose import JWTError, jwt # Encoding and decoding jwt
 # Import OAuth2
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
@@ -32,27 +32,6 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-async def get_current_user( db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, crud.SECRET_KEY, algorithms=[crud.ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-        # token_data = TokenData(username=username)
-        token_data = email
-    except JWTError:
-        raise credentials_exception
-    user = crud.get_user(db, email=token_data)
-    if user is None:
-        raise credentials_exception
-    return user
-
-
 # async def get_current_active_user(current_user: User = Depends(get_current_user)):
 #     if current_user.disabled:
 #         raise HTTPException(status_code=400, detail="Inactive user")
@@ -60,7 +39,7 @@ async def get_current_user( db: Session = Depends(get_db), token: str = Depends(
 
 
 @app.post("/login", response_model=user_schemas.Token)
-async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
+def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
     user = crud.authenticate_user(
         db, form_data.username, form_data.password)
     if not user:
@@ -76,9 +55,11 @@ async def login_for_access_token(db: Session = Depends(get_db), form_data: OAuth
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/users/me/")
+@app.get("/users/me/", response_model=user_schemas.UserBase)
 # async def read_users_me(current_user: users.User = Depends(get_current_active_user)):
-async def read_users_me(current_user: users.User = Depends(get_current_user)):
+def read_users_me(user: user_schemas.UserBase = Depends(crud.get_current_user)):
+    # current_user: users.User = crud.get_current_user()
+    current_user: user
     return current_user
 
 @app.post("/register", response_model=user_schemas.User)
