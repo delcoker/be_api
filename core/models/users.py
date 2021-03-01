@@ -15,3 +15,17 @@ class User(Base):
     status = Column(Boolean, default=False)
     password = Column(String)
 
+    social_accounts = relationship("SocialAccount", back_populates="owner")
+
+
+class SocialAccount(Base):
+    __tablename__ = "social_accounts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    oauth_token = Column(String, index=True)
+    oauth_token_secret = Column(String, index=True)
+    user = Column(Integer, ForeignKey("users.id"))
+
+    owner = relationship("User", back_populates="social_accounts")
+

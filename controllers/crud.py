@@ -39,7 +39,7 @@ ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Instance of OAuth2PasswordBearer
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token") # URL that the client will use to send details in order to get a token
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login") # URL that the client will use to send details in order to get a token
 
 # Utility to verify if a received password matches the hash stored
 def verify_password(plain_password, hashed_password):

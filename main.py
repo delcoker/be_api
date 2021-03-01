@@ -28,8 +28,8 @@ def get_db():
         db.close()
 
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+ACCESS_TOKEN_EXPIRE_MINUTES = 30 
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
 # async def get_current_active_user(current_user: User = Depends(get_current_user)):
@@ -55,14 +55,13 @@ def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = 
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@app.get("/users/me/", response_model=user_schemas.UserBase)
+@app.get("/users/me/", response_model=user_schemas.User)
 # async def read_users_me(current_user: users.User = Depends(get_current_active_user)):
 def read_users_me(user: user_schemas.UserBase = Depends(crud.get_current_user)):
     # current_user: users.User = crud.get_current_user()
-    current_user: user
-    return current_user
+    return user
 
-@app.post("/register", response_model=user_schemas.User)
+@app.post("/register", response_model=user_schemas.UserBase)
 def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
