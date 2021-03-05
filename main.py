@@ -13,11 +13,31 @@ from jose import JWTError, jwt # Encoding and decoding jwt
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 
+# Import os and dotenv to read data from env file
+import os
+from dotenv import load_dotenv
+
+from authlib.integrations.starlette_client import OAuth
+from starlette.middleware.sessions import SessionMiddleware
+from starlette.requests import Request
+
+oauth = OAuth()
+oauth.register(
+    name='twitter',
+    client_id=os.getenv('TWITTER_CLIENT_ID'),
+    client_secret=os.getenv('TWITTER_CLIENT_SECRET'),
+    api_base_url='https://api.twitter.com/1.1/',
+    request_token_url='https://api.twitter.com/oauth/request_token',
+    access_token_url='https://api.twitter.com/oauth/access_token',
+    authorize_url='https://api.twitter.com/oauth/authenticate',
+)
+
 
 users.Base.metadata.create_all(bind=engine)
 
 # Creating a fastapi instance
 app = FastAPI()
+app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY'))
 
 # Dependency
 def get_db():
@@ -68,6 +88,23 @@ def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db=db, user=user)
 
+
+@app.route('/login/twitter')
+async def login_via_twitter(request: Request):
+    # absolute url for callback
+    # we will define it below
+    redirect_uri = request.url_for('auth_via_twitter')
+    return await oauth.twitter.authorize_redirect(request, redirect_uri)
+
+@app.get('/auth/twitter')
+async def auth_via_twitter(request: Request):
+    token = await oauth.twitter.authorize_access_token(request)
+    url = 'account/verify_credentials.json'
+    resp = await oauth.twitter.get(
+        url, params={'skip_status': True}, token=token)
+    user = resp.json()
+    # return token
+    return user
 
 # @app.get("/users/", response_model=List[user_schemas.User])
 # def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
