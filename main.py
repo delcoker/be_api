@@ -21,6 +21,8 @@ from authlib.integrations.starlette_client import OAuth
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 
+from fastapi.middleware.cors import CORSMiddleware
+
 oauth = OAuth()
 oauth.register(
     name='twitter',
@@ -37,7 +39,24 @@ users.Base.metadata.create_all(bind=engine)
 
 # Creating a fastapi instance
 app = FastAPI()
+
+# Created a session middleware  
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY'))
+
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8080",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Dependency
 def get_db():
