@@ -116,14 +116,17 @@ async def login_via_twitter(request: Request):
     return await oauth.twitter.authorize_redirect(request, redirect_uri)
 
 @app.get('/auth/twitter')
-async def auth_via_twitter(request: Request):
-    token = await oauth.twitter.authorize_access_token(request)
+async def auth_via_twitter(request: Request,db: Session = Depends(get_db)):
+    twitter_token = await oauth.twitter.authorize_access_token(request)
     url = 'account/verify_credentials.json'
     resp = await oauth.twitter.get(
-        url, params={'skip_status': True}, token=token)
+        url, params={'skip_status': True}, token=twitter_token)
     user = resp.json()
+    account = "Twitter"
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqdWRlQGdtYWlsLmNvbSIsImV4cCI6MTYxNTIyODcyMH0.tUGz0b27_irEgzjhcJL2uRQ6Jw3TwGOErgANu76drp8"
+    db_social_account = crud.store_user_social_account(db,twitter_token,token,account)
     # return token
-    return user
+    return db_social_account
 
 # @app.get("/users/", response_model=List[user_schemas.User])
 # def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):

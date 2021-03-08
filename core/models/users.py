@@ -25,7 +25,7 @@ class SocialAccount(Base):
     name = Column(String, index=True)
     oauth_token = Column(String, index=True)
     oauth_token_secret = Column(String, index=True)
-    user = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
 
     owner = relationship("User", back_populates="social_accounts")
 

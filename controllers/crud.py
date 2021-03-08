@@ -111,6 +111,38 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
         raise credentials_exception
     return user
 
+def store_user_social_account( db: Session, twitter_user_details: dict, token: str, account_name: str):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY,
+                             algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+        # token_data = TokenData(username=username)
+        token_data = email
+    except JWTError:
+        raise credentials_exception
+    # return token_data
+    user = get_user_by_email(db, email=token_data)
+    if user is None:
+        raise credentials_exception
+    # return twitter_user_details["oauth_token"]
+    db_social_user = users.SocialAccount(
+        user_id=user.id,
+        name=account_name,
+        oauth_token=twitter_user_details["oauth_token"],
+        oauth_token_secret=twitter_user_details["oauth_token_secret"],
+    )
+    db.add(db_social_user)
+    db.commit()
+    db.refresh(db_social_user)
+    return db_social_user
+
 
 # def get_user(db: Session, user_id: int):
 #     return db.query(users.User).filter(users.User.id == user_id).first()
