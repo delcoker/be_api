@@ -116,22 +116,26 @@ async def login_via_twitter(request: Request):
     return await oauth.twitter.authorize_redirect(request, redirect_uri)
 
 @app.get('/auth/twitter')
-async def auth_via_twitter(request: Request,db: Session = Depends(get_db)):
-    twitter_token = await oauth.twitter.authorize_access_token(request)
-    url = 'account/verify_credentials.json'
+# Receive request and token from fe and start a db session 
+async def auth_via_twitter(request: Request,token,db: Session = Depends(get_db)):
+    twitter_token = await oauth.twitter.authorize_access_token(request) 
+    url = 'account/verify_credentials.json' # url to verify 
+    # Authorized to get user information using the token given
     resp = await oauth.twitter.get(
-        url, params={'skip_status': True}, token=twitter_token)
+        url, params={'skip_status': True}, token=twitter_token) 
+    # Change data into json 
     user = resp.json()
+    # Social Media platform name
     account = "Twitter"
-    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqdWRlQGdtYWlsLmNvbSIsImV4cCI6MTYxNTIyODcyMH0.tUGz0b27_irEgzjhcJL2uRQ6Jw3TwGOErgANu76drp8"
+    # Send details to the function that stores the information of the user and their social media details
     db_social_account = crud.store_user_social_account(db,twitter_token,token,account)
-    # return token
+    # Return response/data after the function stores the details
     return db_social_account
 
-# @app.get("/users/", response_model=List[user_schemas.User])
-# def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-#     users = crud.get_users(db, skip=skip, limit=limit)
-#     return users
+@app.get("/users/", response_model=List[user_schemas.User])
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    users = crud.get_users(db, skip=skip, limit=limit)
+    return users
 
 
 # @app.get("/users/{user_id}", response_model=user_schemas.User)

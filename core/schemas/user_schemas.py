@@ -43,6 +43,15 @@ class User(UserBase):
     status: bool
     # social_accounts: List[SocialAccount] = []
 
+class Social_User(BaseModel):
+    id: int
+    first_name: str
+    last_name: str
+    email: str
+    phone: str
+    status: bool
+    social_accounts: List[SocialAccount] = []
+
     # used to provide configurations to Pydantic
     # read the data even if it is not a dict
     class Config:
