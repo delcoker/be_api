@@ -96,11 +96,10 @@ def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = 
     return user
 
 
-@app.get("/users/me/", response_model=user_schemas.User)
-# async def read_users_me(current_user: users.User = Depends(get_current_active_user)):
-def read_users_me(user: user_schemas.UserBase = Depends(crud.get_current_user)):
-    # current_user: users.User = crud.get_current_user()
-    return user
+@app.post("/users/me/", response_model=user_schemas.UserBase)
+def read_users_me(token: user_schemas.Token, db: Session = Depends(get_db)):
+    current_user: users.User = crud.get_current_user(db, token)
+    return current_user
 
 @app.post("/register", response_model=user_schemas.UserBase)
 def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):

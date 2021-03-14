@@ -89,15 +89,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-# def get_current_user(token: str = Depends(oauth2_scheme)):3
+def get_current_user(db: Session, token):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY,
+        payload = jwt.decode(token.access_token, SECRET_KEY,
                              algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:

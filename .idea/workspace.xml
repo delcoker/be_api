@@ -4,7 +4,6 @@
     <list default="true" id="9fe7a161-ee02-4238-a2c5-bc98d485e579" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/controllers/crud.py" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/crud.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/schemas/user_schemas.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/schemas/user_schemas.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -39,7 +38,7 @@
       <workItem from="1615565187510" duration="2498000" />
       <workItem from="1615634220960" duration="10768000" />
       <workItem from="1615677907096" duration="660000" />
-      <workItem from="1615732638954" duration="2617000" />
+      <workItem from="1615732638954" duration="8188000" />
     </task>
     <servers />
   </component>
