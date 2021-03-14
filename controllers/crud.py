@@ -144,8 +144,8 @@ def store_user_social_account( db: Session, twitter_user_details: dict, token: s
     return db_social_user
 
 
-# def get_user(db: Session, user_id: int):
-#     return db.query(users.User).filter(users.User.id == user_id).first()
+def get_user(db: Session, user_id: int):
+    return db.query(users.User).filter(users.User.id == user_id).first()
 
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     # Limit and offset works like pagination
