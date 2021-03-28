@@ -110,7 +110,7 @@ def get_current_user(db: Session, token):
         raise credentials_exception
     return user
 
-def store_user_social_account( db: Session, twitter_user_details: dict, token: str, account_name: str):
+def store_user_social_account( db: Session, oauth_token: str, oauth_token_secret: str, token: str, account_name: str):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -134,8 +134,8 @@ def store_user_social_account( db: Session, twitter_user_details: dict, token: s
     db_social_user = users.SocialAccount(
         user_id=user.id,
         name=account_name,
-        oauth_token=twitter_user_details["oauth_token"],
-        oauth_token_secret=twitter_user_details["oauth_token_secret"],
+        oauth_token=oauth_token,
+        oauth_token_secret=oauth_token_secret,
     )
     db.add(db_social_user)
     db.commit()

@@ -76,3 +76,5 @@ class Social_User(BaseModel):
     class Config:
         orm_mode = True
 
+class Url(BaseModel):
+    url: str
