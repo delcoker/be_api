@@ -1,14 +1,6 @@
-import base64
-import binascii
-import hashlib
-import hmac
-import urllib
 from typing import List
-# Import fastapi and others
 from fastapi import Depends, FastAPI, HTTPException, status, Form
 from sqlalchemy.orm import Session
-
-from urllib.parse import urlencode, urljoin
 
 from controllers import crud
 from core.schemas import user_schemas
@@ -16,18 +8,15 @@ from core.models import users
 from core.models.database import SessionLocal, engine
 # Import JWT and authentication dependencies needed
 from jose import JWTError, jwt  # Encoding and decoding jwt
-# Import OAuth2
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
 
 # Import os and dotenv to read data from env file
 import os
-from dotenv import load_dotenv
 
 from authlib.integrations.starlette_client import OAuth
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
-import requests  # Used for post requests for the twitter api connection
 
 # Using OAuth1Session
 from requests_oauthlib import OAuth1Session
@@ -35,6 +24,8 @@ from requests_oauthlib import OAuth1Session
 # Using OAuth1 auth helper
 import requests
 from requests_oauthlib import OAuth1
+
+from urllib.parse import urlencode, urljoin, parse_qs
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -136,20 +127,29 @@ def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
 async def login_via_twitter(request: Request):
     oauth = OAuth1Session(os.getenv('TWITTER_CLIENT_ID'), client_secret=os.getenv('TWITTER_CLIENT_SECRET'))
     fetch_response = oauth.fetch_request_token(request_token_url)
-    return Url(url=authorize_url +'?oauth_token='+ fetch_response.get('oauth_token')+'&oauth_token_secret='+ fetch_response.get('oauth_token_secret'))
+    return Url(url=authorize_url + '?oauth_token=' + fetch_response.get(
+        'oauth_token') + '&oauth_token_secret=' + fetch_response.get('oauth_token_secret'))
+
 
 @app.get('/auth/twitter')
 # Receive request and token from fe and start a db session 
-async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...), oauth_verifier: str = Form(...),
+async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...), oauth_token_secret: str = Form(...), oauth_verifier: str = Form(...),
                            db: Session = Depends(get_db)):
-    params = {"oauth_consumer_key": os.getenv('TWITTER_CLIENT_ID'),
-              "oauth_token": oauth_token,
-              "oauth_verifier": oauth_verifier
-              }
-    inp_post_response = requests.post(request_token_url, params=params)
+    # Pass details gotten from body into function
+    oauth = OAuth1Session(os.getenv('TWITTER_CLIENT_ID'),
+                          client_secret=os.getenv('TWITTER_CLIENT_SECRET'),
+                          resource_owner_key=oauth_token,
+                          resource_owner_secret=oauth_token_secret,
+                          verifier=oauth_verifier)
+    # Run url with the params
+    r = requests.post(url=access_token_url, auth=oauth)
+    # Parse data
+    credentials = parse_qs(r.content)
+    # account name
     account = "twitter"
     # Send details to the function that stores the information of the user and their social media details
-    db_social_account = crud.store_user_social_account(db, inp_post_response.oauth_token, inp_post_response.oauth_token_secret, token, account)
+    db_social_account = crud.store_user_social_account(db, credentials.get('oauth_token')[0],
+                                                       credentials.get('oauth_token_secret')[0], token, account)
     # Return response/data after the function stores the details
     return db_social_account
 
@@ -166,9 +166,6 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
-
-
-
 
 # @app.get()
 # def read_users_social_accounts
