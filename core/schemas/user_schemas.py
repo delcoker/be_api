@@ -2,13 +2,16 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+
 class SocialAccountBase(BaseModel):
     name: str
     oauth_token: str
     oauth_token_secret: str
 
+
 class SocialAccountCreate(SocialAccountBase):
     pass
+
 
 class SocialAccount(SocialAccountBase):
     id: int
@@ -16,6 +19,7 @@ class SocialAccount(SocialAccountBase):
 
     class Config:
         orm_mode = True
+
 
 class Token(BaseModel):
     access_token: str
@@ -25,17 +29,21 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     email: Optional[str] = None
 
+
 class UserBase(BaseModel):
     first_name: str
     last_name: str
     email: str
     phone: str
 
+
 class UserInDB(UserBase):
     password: str
 
+
 class UserCreate(UserBase):
     password: str
+
 
 class User(UserBase):
     id: int
@@ -44,12 +52,14 @@ class User(UserBase):
     email: str
     phone: str
     status: bool
+
     # social_accounts: List[SocialAccount] = []
 
     # used to provide configurations to Pydantic
     # read the data even if it is not a dict
     class Config:
         orm_mode = True
+
 
 class Logged_In_User(BaseModel):
     access_token: str
@@ -61,6 +71,7 @@ class Logged_In_User(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class Social_User(BaseModel):
     id: int
@@ -75,6 +86,7 @@ class Social_User(BaseModel):
     # read the data even if it is not a dict
     class Config:
         orm_mode = True
+
 
 class Url(BaseModel):
     url: str

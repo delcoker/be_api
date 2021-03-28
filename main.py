@@ -36,13 +36,13 @@ authorize_url = 'https://api.twitter.com/oauth/authorize'
 request_token_url = 'https://api.twitter.com/oauth/request_token'
 access_token_url = 'https://api.twitter.com/oauth/access_token'
 
-oauth = OAuth()
-oauth.register(
-    name='twitter',
-    client_id=os.getenv('TWITTER_CLIENT_ID'),
-    client_secret=os.getenv('TWITTER_CLIENT_SECRET'),
-    api_base_url='https://api.twitter.com/1.1/',
-)
+# oauth = OAuth()
+# oauth.register(
+#     name='twitter',
+#     client_id=os.getenv('TWITTER_CLIENT_ID'),
+#     client_secret=os.getenv('TWITTER_CLIENT_SECRET'),
+#     api_base_url='https://api.twitter.com/1.1/',
+# )
 
 users.Base.metadata.create_all(bind=engine)
 
@@ -133,13 +133,14 @@ async def login_via_twitter(request: Request):
 
 @app.get('/auth/twitter')
 # Receive request and token from fe and start a db session 
-async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...), oauth_token_secret: str = Form(...), oauth_verifier: str = Form(...),
+async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...),
+                           oauth_verifier: str = Form(...),
                            db: Session = Depends(get_db)):
     # Pass details gotten from body into function
     oauth = OAuth1Session(os.getenv('TWITTER_CLIENT_ID'),
                           client_secret=os.getenv('TWITTER_CLIENT_SECRET'),
                           resource_owner_key=oauth_token,
-                          resource_owner_secret=oauth_token_secret,
+                          # resource_owner_secret=oauth_token_secret,
                           verifier=oauth_verifier)
     # Run url with the params
     r = requests.post(url=access_token_url, auth=oauth)

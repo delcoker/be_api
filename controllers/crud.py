@@ -20,6 +20,7 @@ from typing import Optional
 
 load_dotenv()
 
+
 # Dependency
 
 
@@ -30,6 +31,7 @@ def get_db():
     finally:
         db.close()
 
+
 # to get a string like this run:
 # openssl rand -hex 32
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -39,7 +41,9 @@ ALGORITHM = "HS256"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Instance of OAuth2PasswordBearer
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login") # URL that the client will use to send details in order to get a token
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="login")  # URL that the client will use to send details in order to get a token
+
 
 # Utility to verify if a received password matches the hash stored
 def verify_password(plain_password, hashed_password):
@@ -48,6 +52,7 @@ def verify_password(plain_password, hashed_password):
 
 def get_password_hash(password):
     return pwd_context.hash(password)
+
 
 # Retrieve a user based on their email
 # def get_user(db: Session, email: str):
@@ -69,6 +74,7 @@ def create_user(db: Session, user: user_schemas.UserCreate):
     db.refresh(db_user)
     return db_user
 
+
 # Authenticate and return a user
 def authenticate_user(db: Session, email: str, password: str):
     user = get_user_by_email(db, email)
@@ -88,6 +94,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
 
 def get_current_user(db: Session, token):
     credentials_exception = HTTPException(
@@ -110,7 +117,8 @@ def get_current_user(db: Session, token):
         raise credentials_exception
     return user
 
-def store_user_social_account( db: Session, oauth_token: str, oauth_token_secret: str, token: str, account_name: str):
+
+def store_user_social_account(db: Session, oauth_token: str, oauth_token_secret: str, token: str, account_name: str):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -146,10 +154,10 @@ def store_user_social_account( db: Session, oauth_token: str, oauth_token_secret
 def get_user(db: Session, user_id: int):
     return db.query(users.User).filter(users.User.id == user_id).first()
 
+
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     # Limit and offset works like pagination
     return db.query(users.User).offset(skip).limit(limit).all()
-
 
 # def create_user(db: Session, user: user_schemas.UserCreate):
 #     fake_hashed_password = user.password + "notreallyhashed"
