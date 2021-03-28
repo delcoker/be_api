@@ -62,7 +62,7 @@ class User(UserBase):
 
 
 class Logged_In_User(BaseModel):
-    access_token: str
+    token: str
     token_type: str
     first_name: str
     last_name: str
