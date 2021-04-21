@@ -97,7 +97,7 @@ def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = 
     return user
 
 
-@app.post("/users/me/", response_model=user_schemas.User)
+@app.post("/user/me/", response_model=user_schemas.User)
 def read_users_me(token: str = Form(...), db: Session = Depends(get_db)):
     current_user: users.User = crud.get_current_user(db, token)
     return current_user
