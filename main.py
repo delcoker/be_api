@@ -36,14 +36,6 @@ authorize_url = 'https://api.twitter.com/oauth/authorize'
 request_token_url = 'https://api.twitter.com/oauth/request_token'
 access_token_url = 'https://api.twitter.com/oauth/access_token'
 
-# oauth = OAuth()
-# oauth.register(
-#     name='twitter',
-#     client_id=os.getenv('TWITTER_CLIENT_ID'),
-#     client_secret=os.getenv('TWITTER_CLIENT_SECRET'),
-#     api_base_url='https://api.twitter.com/1.1/',
-# )
-
 users.Base.metadata.create_all(bind=engine)
 
 # Creating a fastapi instance
@@ -68,7 +60,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -77,12 +68,9 @@ def get_db():
     finally:
         db.close()
 
-
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
 
 # async def get_current_active_user(current_user: User = Depends(get_current_user)):
 #     if current_user.disabled:
@@ -109,8 +97,8 @@ def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = 
     return user
 
 
-@app.post("/users/me/", response_model=user_schemas.UserBase)
-def read_users_me(token: user_schemas.Token, db: Session = Depends(get_db)):
+@app.post("/users/me/", response_model=user_schemas.User)
+def read_users_me(token: str = Form(...), db: Session = Depends(get_db)):
     current_user: users.User = crud.get_current_user(db, token)
     return current_user
 
@@ -138,15 +126,16 @@ async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...),
                            db: Session = Depends(get_db)):
     # Fetch token and verifier and pass to oauth function
     oauth = OAuth1Session(os.getenv('TWITTER_CLIENT_ID'),
-                               client_secret=os.getenv('TWITTER_CLIENT_SECRET'),
-                               resource_owner_key=oauth_token,
-                               verifier=oauth_verifier)
+                          client_secret=os.getenv('TWITTER_CLIENT_SECRET'),
+                          resource_owner_key=oauth_token,
+                          verifier=oauth_verifier)
     # get access tokens
     oauth_tokens = oauth.fetch_access_token(access_token_url)
     # account name
     account = "twitter"
     # Send details to the function that stores the information of the user and their social media details
-    db_social_account = crud.store_user_social_account(db, oauth_tokens.get('oauth_token'), oauth_tokens.get('oauth_token_secret'), token, account)
+    db_social_account = crud.store_user_social_account(db, oauth_tokens.get('oauth_token'),
+                                                       oauth_tokens.get('oauth_token_secret'), token, account)
     # Return response/data after the function stores the details
     return db_social_account
 

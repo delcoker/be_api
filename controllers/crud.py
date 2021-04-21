@@ -16,6 +16,11 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
+# test
+import requests
+import json
+# test end
+
 from typing import Optional
 
 load_dotenv()
@@ -103,9 +108,10 @@ def get_current_user(db: Session, token):
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token.access_token, SECRET_KEY,
+        payload = jwt.decode(token, SECRET_KEY,
                              algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        # return email
         if email is None:
             raise credentials_exception
         # token_data = TokenData(username=username)
@@ -171,3 +177,8 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 #     db.commit()
 #     db.refresh(db_user)
 #     return db_user
+
+# To set your enviornment variables in your terminal run the following line:
+# export 'BEARER_TOKEN'='<your_bearer_token>'
+
+
