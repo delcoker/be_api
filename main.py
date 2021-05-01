@@ -30,6 +30,7 @@ from urllib.parse import urlencode, urljoin, parse_qs
 from fastapi.middleware.cors import CORSMiddleware
 
 from core.schemas.user_schemas import Url
+import base64
 
 authenticate_url = 'https://api.twitter.com/oauth/authenticate'
 authorize_url = 'https://api.twitter.com/oauth/authorize'
@@ -155,3 +156,14 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 
 # @app.get()
 # def read_users_social_accounts
+
+
+@app.get("/stream")
+def main():
+    bearer_token = "AAAAAAAAAAAAAAAAAAAAAAR4GwEAAAAAgkH0ksQzl%2B7Kwa9xMK4yXVdrci4%3DZaRE7GIRRMvm2VwcqvzV7zrpcaL6BqUvUfwHZk5aUZzf4ON0Ev"
+    # bearer_token = "AAAAAAAAAAAAAAAAAAAAAKd99QAAAAAAFT%2BLsnpKWIBwEp3XSOP%2ByOViZes%3DtR26nwuAlgFIEV25QpLozw4p4Zn9xxzKYAAeVvkIRT7fbEu8R2"
+    headers = crud.create_headers(bearer_token)
+    rules = crud.get_rules(headers, bearer_token)
+    delete = crud.delete_all_rules(headers, bearer_token, rules)
+    set = crud.set_rules(headers, bearer_token)
+    crud.get_stream(headers, set, bearer_token)

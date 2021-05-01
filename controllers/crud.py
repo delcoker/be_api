@@ -16,10 +16,12 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
-# test
+# Test for stream
 import requests
 import json
-# test end
+import base64
+# Test for stream end
+
 
 from typing import Optional
 
@@ -178,7 +180,99 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 #     db.refresh(db_user)
 #     return db_user
 
-# To set your enviornment variables in your terminal run the following line:
-# export 'BEARER_TOKEN'='<your_bearer_token>'
+# Code for generating bearer token
+def generate_bearer_token():
+    bearer_token = base64.b64encode(
+        f"{os.getenv('TWITTER_CLIENT_ID')}:{os.getenv('TWITTER_CLIENT_SECRET')}".encode())
+    headers = {
+        "Authorization": f"Basic {bearer_token.decode()}",
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+    }
+    resp = requests.post(
+        url="https://api.twitter.com/oauth2/token",
+        data={"grant_type": "client_credentials"},
+        headers=headers,
+    )
+    data = resp.json()
 
+    return data
+
+
+def create_headers(bearer_token):
+    headers = {"Authorization": "Bearer {}".format(bearer_token)}
+    return headers
+
+
+def get_rules(headers, bearer_token):
+    response = requests.get(
+        "https://api.twitter.com/2/tweets/search/stream/rules", headers=headers
+    )
+    if response.status_code != 200:
+        raise Exception(
+            "Cannot get rules (HTTP {}): {}".format(
+                response.status_code, response.text)
+        )
+    print(json.dumps(response.json()))
+    return response.json()
+
+
+def delete_all_rules(headers, bearer_token, rules):
+    if rules is None or "data" not in rules:
+        return None
+
+    ids = list(map(lambda rule: rule["id"], rules["data"]))
+    payload = {"delete": {"ids": ids}}
+    response = requests.post(
+        "https://api.twitter.com/2/tweets/search/stream/rules",
+        headers=headers,
+        json=payload
+    )
+    if response.status_code != 200:
+        raise Exception(
+            "Cannot delete rules (HTTP {}): {}".format(
+                response.status_code, response.text
+            )
+        )
+    print(json.dumps(response.json()))
+
+
+# def set_rules(headers, delete, bearer_token):
+def set_rules(headers, bearer_token):
+    # You can adjust the rules if needed
+    sample_rules = [
+        {"value": "#ecg"},
+        {"value": "#esl"},
+        {"value": "#dumsor"},
+        # {"value": "dog has:images", "tag": "dog pictures"},
+        # {"value": "cat has:images -grumpy", "tag": "cat pictures"},
+    ]
+    payload = {"add": sample_rules}
+    response = requests.post(
+        "https://api.twitter.com/2/tweets/search/stream/rules",
+        headers=headers,
+        json=payload,
+    )
+    if response.status_code != 201:
+        raise Exception(
+            "Cannot add rules (HTTP {}): {}".format(
+                response.status_code, response.text)
+        )
+    print(json.dumps(response.json()))
+
+
+def get_stream(headers, set, bearer_token):
+    response = requests.get(
+        "https://api.twitter.com/2/tweets/search/stream", headers=headers, stream=True,
+    )
+    print(response.status_code)
+    if response.status_code != 200:
+        raise Exception(
+            "Cannot get stream (HTTP {}): {}".format(
+                response.status_code, response.text
+            )
+        )
+    for response_line in response.iter_lines():
+        if response_line:
+            json_response = json.loads(response_line)
+            print(json.dumps(json_response, indent=4, sort_keys=True))
 
