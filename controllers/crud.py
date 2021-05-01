@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 # Import model and schemas from other folders
 from core.models import users
 from core.schemas import user_schemas
+from core.schemas import group_categories
 from core.models.database import SessionLocal, engine
 
 # Import OAuth2 
@@ -183,6 +184,17 @@ def generate_bearer_token():
     data = resp.json()
 
     return data
+
+# Code for creating group category
+def create_group_category(db: Session, group_category: group_categories.GroupCategoryCreate):
+    db_group_category = users.GroupCategory(
+        user_id=group_category.user_id,
+        group_category_name=group_category.group_category_name
+    )
+    db.add(db_group_category)
+    db.commit()
+    db.refresh(db_group_category)
+    return db_group_category
 
 # Code for creating headers to connect to twitter for the streams
 def create_headers(bearer_token):

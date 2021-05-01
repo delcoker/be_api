@@ -1,5 +1,5 @@
 from typing import List, Optional
-
+from core.schemas import group_categories
 from pydantic import BaseModel
 
 
@@ -36,11 +36,6 @@ class UserBase(BaseModel):
     email: str
     phone: str
 
-
-class UserInDB(UserBase):
-    password: str
-
-
 class UserCreate(UserBase):
     password: str
 
@@ -69,6 +64,14 @@ class Social_User(User):
     social_accounts: List[SocialAccount] = []
     # used to provide configurations to Pydantic
     # read the data even if it is not a dict
+    class Config:
+        orm_mode = True
+
+class User_Group_Categories(User):
+    group_categories: List['group_categories.GroupCategory'] = []
+    # used to provide configurations to Pydantic
+    # read the data even if it is not a dict
+
     class Config:
         orm_mode = True
 

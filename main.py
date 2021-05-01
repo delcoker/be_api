@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from controllers import crud
 from core.schemas import user_schemas
+from core.schemas import group_categories
 from core.models import users
 from core.models.database import SessionLocal, engine
 # Import JWT and authentication dependencies needed
@@ -154,8 +155,18 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-# @app.get()
-# def read_users_social_accounts
+
+@app.post("/group/category/create", response_model=group_categories.GroupCategory)
+def group_category_create(group_category: group_categories.GroupCategoryCreate, db: Session = Depends(get_db)):
+    return crud.create_group_category(db, group_category)
+
+
+# @app.get("/users/group/category/{user_id}", response_model=user_schemas.User_Group_Categories)
+# def read_user(user_id: int, db: Session = Depends(get_db)):
+#     db_user = crud.create_group_category(db, user_id=user_id)
+#     if db_user is None:
+#         raise HTTPException(status_code=404, detail="User not found")
+#     return db_user
 
 
 @app.get("/stream")
