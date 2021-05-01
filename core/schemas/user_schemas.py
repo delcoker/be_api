@@ -47,10 +47,6 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-    first_name: str
-    last_name: str
-    email: str
-    phone: str
     status: bool
 
     # social_accounts: List[SocialAccount] = []
@@ -61,27 +57,16 @@ class User(UserBase):
         orm_mode = True
 
 
-class Logged_In_User(BaseModel):
+class Logged_In_User(User):
     token: str
     token_type: str
-    first_name: str
-    last_name: str
-    email: str
-    phone: str
 
     class Config:
         orm_mode = True
 
 
-class Social_User(BaseModel):
-    id: int
-    first_name: str
-    last_name: str
-    email: str
-    phone: str
-    status: bool
+class Social_User(User):
     social_accounts: List[SocialAccount] = []
-
     # used to provide configurations to Pydantic
     # read the data even if it is not a dict
     class Config:
