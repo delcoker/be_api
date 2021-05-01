@@ -201,6 +201,9 @@ def get_group_categories(db: Session):
     # Limit and offset works like pagination
     return db.query(users.GroupCategory).all()
 
+def get_group_category(db: Session, group_category_id: int):
+    return db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).first()
+
 # Code for creating headers to connect to twitter for the streams
 def create_headers(bearer_token):
     headers = {"Authorization": "Bearer {}".format(bearer_token)}
