@@ -155,11 +155,16 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-
+# Route to store group categories
 @app.post("/group/category/create", response_model=group_categories.GroupCategory)
 def group_category_create(group_category: group_categories.GroupCategoryCreate, db: Session = Depends(get_db)):
     return crud.create_group_category(db, group_category)
 
+# Route to get group categories
+@app.post("/group/categories", response_model=List[group_categories.GroupCategory])
+def get_group_categories(db: Session = Depends(get_db)):
+    group_categories = crud.get_group_categories(db)
+    return group_categories
 
 # @app.get("/users/group/category/{user_id}", response_model=user_schemas.User_Group_Categories)
 # def read_user(user_id: int, db: Session = Depends(get_db)):
