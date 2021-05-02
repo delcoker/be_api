@@ -6,6 +6,7 @@ from controllers import crud
 from core.schemas import user_schemas
 from core.schemas import group_categories
 from core.models import users
+from routers import group_category_routes
 from core.models.database import SessionLocal, engine
 # Import JWT and authentication dependencies needed
 from jose import JWTError, jwt  # Encoding and decoding jwt
@@ -79,6 +80,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 #         raise HTTPException(status_code=400, detail="Inactive user")
 #     return current_user
 
+app.include_router(group_category_routes.router)
 
 @app.post("/login", response_model=user_schemas.Logged_In_User)
 def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
@@ -150,40 +152,6 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
-
-# Route to store group categories
-@app.post("/group/category/create", response_model=group_categories.GroupCategory)
-def group_category_create(group_category: group_categories.GroupCategoryCreate, db: Session = Depends(get_db)):
-    return crud.create_group_category(db, group_category)
-
-# Route to get group categories
-@app.post("/group/categories", response_model=List[group_categories.GroupCategory])
-def get_group_categories(db: Session = Depends(get_db)):
-    group_categories = crud.get_group_categories(db)
-    return group_categories
-
-# Get specified group category
-@app.get("/group/category/{group_category_id}", response_model=group_categories.GroupCategory)
-def read_group_category(group_category_id: int, db: Session = Depends(get_db)):
-    db_group_category = crud.get_group_category(db, group_category_id=group_category_id)
-    if db_group_category is None:
-        raise HTTPException(status_code=404, detail="Group Category not found")
-    return db_group_category
-
-# Update specified group category
-@app.post("/group/category/update/{group_category_id}") #, response_model=group_categories.GroupCategory
-def update_group_category(group_category_id: int, group_category: group_categories.GroupCategoryCreate, db: Session = Depends(get_db)):
-    db_group_category = crud.update_group_category(db, group_category_id, group_category)
-    if db_group_category is None:
-        raise HTTPException(status_code=404, detail="Group Category not found")
-    return {"message": "Group Category has been updated succesfully"}
-
-# Delete specified group category
-@app.post("/group/category/delete{group_category_id}")
-def delete_group_category(group_category_id: int, db: Session = Depends(get_db)):
-    db_group_category = crud.delete_group_category(db, group_category_id)
-    if db_group_category == 1:
-        return {"message": "Group Category has been deleted succesfully"}
 
 # @app.get("/users/group/category/{user_id}", response_model=user_schemas.User_Group_Categories)
 # def read_user(user_id: int, db: Session = Depends(get_db)):
