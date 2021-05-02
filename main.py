@@ -170,6 +170,22 @@ def read_group_category(group_category_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Group Category not found")
     return db_group_category
 
+# Update specified group category
+@app.post("/group/category/update/{group_category_id}") #, response_model=group_categories.GroupCategory
+def update_group_category(group_category_id: int, group_category: group_categories.GroupCategoryCreate, db: Session = Depends(get_db)):
+    db_group_category = crud.update_group_category(db, group_category_id, group_category)
+    if db_group_category is None:
+        raise HTTPException(status_code=404, detail="Group Category not found")
+    return {"message": "Group Category has been updated succesfully"}
+
+# Delete specified group category
+# @app.post("/group/category/delete{group_category_id}")
+# def delete_group_category(group_category_id: int, db: Session = Depends(get_db)):
+#     db_group_category = crud.update_group_category(db, group_category_id=group_category_id)
+#     if db_group_category is None:
+#         raise HTTPException(status_code=404, detail="Group Category not found")
+#     return {"message": "Group Category has been updated succesfully"}
+
 # @app.get("/users/group/category/{user_id}", response_model=user_schemas.User_Group_Categories)
 # def read_user(user_id: int, db: Session = Depends(get_db)):
 #     db_user = crud.create_group_category(db, user_id=user_id)

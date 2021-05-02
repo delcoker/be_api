@@ -204,6 +204,15 @@ def get_group_categories(db: Session):
 def get_group_category(db: Session, group_category_id: int):
     return db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).first()
 
+
+def update_group_category(db: Session, group_category_id: int, group_category: group_categories.GroupCategoryCreate):
+    result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).update({
+        "user_id": group_category.user_id,
+        "group_categorsy_name": group_category.group_category_name
+    })
+    db.commit()
+    return result
+
 # Code for creating headers to connect to twitter for the streams
 def create_headers(bearer_token):
     headers = {"Authorization": "Bearer {}".format(bearer_token)}
