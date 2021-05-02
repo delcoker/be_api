@@ -213,6 +213,11 @@ def update_group_category(db: Session, group_category_id: int, group_category: g
     db.commit()
     return result
 
+def delete_group_category(db: Session, group_category_id: int):
+    result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).delete()
+    db.commit()
+    return result
+
 # Code for creating headers to connect to twitter for the streams
 def create_headers(bearer_token):
     headers = {"Authorization": "Bearer {}".format(bearer_token)}
