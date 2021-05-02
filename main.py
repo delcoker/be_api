@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 
 from controllers import crud
 from core.schemas import user_schemas
-from core.schemas import group_categories
 from core.models import users
 from routers import group_category_routes
 from core.models.database import SessionLocal, engine

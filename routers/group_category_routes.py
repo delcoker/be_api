@@ -1,16 +1,17 @@
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, status, Form
-from core.models.database import SessionLocal, engine
-from sqlalchemy.orm import Session
 from typing import List
+from sqlalchemy.orm import Session
 
 
 from controllers import crud
 from core.schemas import group_categories
+from core.models.database import SessionLocal, engine
+# from dependency.dependencies import get_db
 
 router = APIRouter()
 
-# Dependency
-def get_db():
+#  Dependency
+async def get_db():
     db = SessionLocal()
     try:
         yield db
