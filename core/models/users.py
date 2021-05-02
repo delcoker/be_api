@@ -12,13 +12,15 @@ class User(Base):
     last_name = Column(String, index=True)
     email = Column(String, unique=True, index=True)
     phone = Column(String, unique=True, index=True)
-    status = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False)
     password = Column(String)
 
     # These are links to the other tables so this table can fetch data from the other tables and thos tables 
     # can fetch data from this table. it does this via the foreign key join
     social_accounts = relationship("SocialAccount", back_populates="owner", cascade="all, delete", passive_deletes=True)  # so oncascade it should delete the data in other tables that are linked to it
     group_categories = relationship("GroupCategory", back_populates="owner_of_group_category", cascade="all, delete", passive_deletes=True)
+    scopes = relationship("Scope", back_populates="creator", cascade="all, delete", passive_deletes=True)
 
 class SocialAccount(Base):
     __tablename__ = "social_accounts"
@@ -58,6 +60,16 @@ class Keyword(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     category_id = Column(Integer,  ForeignKey('categories.id'))
-    track = Column(String, index=True)
+    keywords = Column(String, index=True)
 
     category = relationship("Category", back_populates="keywords")
+
+class Scope(Base):
+    __tablename__ = "scopes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer,  ForeignKey('users.id'))
+    name = Column(String, index=True)
+    scope = Column(String, index=True)
+
+    creator = relationship("User", back_populates="scopes")
