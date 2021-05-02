@@ -208,7 +208,7 @@ def get_group_category(db: Session, group_category_id: int):
 def update_group_category(db: Session, group_category_id: int, group_category: group_categories.GroupCategoryCreate):
     result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).update({
         "user_id": group_category.user_id,
-        "group_categorsy_name": group_category.group_category_name
+        "group_category_name": group_category.group_category_name
     })
     db.commit()
     return result
