@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from controllers import crud
 from core.schemas import user_schemas
+from core.schemas import group_categories
 from core.models import users
 from core.models.database import SessionLocal, engine
 # Import JWT and authentication dependencies needed
@@ -111,14 +112,12 @@ def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
     return crud.create_user(db=db, user=user)
 
-
 @app.get('/login/twitter')
 async def login_via_twitter(request: Request):
     oauth = OAuth1Session(os.getenv('TWITTER_CLIENT_ID'), client_secret=os.getenv('TWITTER_CLIENT_SECRET'))
     fetch_response = oauth.fetch_request_token(request_token_url)
     return Url(url=authorize_url + '?oauth_token=' + fetch_response.get(
         'oauth_token') + '&oauth_token_secret=' + fetch_response.get('oauth_token_secret'))
-
 
 @app.post('/auth/twitter')
 # Receive request and token from fe and start a db session 
@@ -140,12 +139,10 @@ async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...),
     # Return response/data after the function stores the details
     return db_social_account
 
-
 @app.get("/users/", response_model=List[user_schemas.User])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
-
 
 @app.get("/users/{user_id}", response_model=user_schemas.User)
 def read_user(user_id: int, db: Session = Depends(get_db)):
@@ -154,8 +151,46 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
-# @app.get()
-# def read_users_social_accounts
+# Route to store group categories
+@app.post("/group/category/create", response_model=group_categories.GroupCategory)
+def group_category_create(group_category: group_categories.GroupCategoryCreate, db: Session = Depends(get_db)):
+    return crud.create_group_category(db, group_category)
+
+# Route to get group categories
+@app.post("/group/categories", response_model=List[group_categories.GroupCategory])
+def get_group_categories(db: Session = Depends(get_db)):
+    group_categories = crud.get_group_categories(db)
+    return group_categories
+
+# Get specified group category
+@app.get("/group/category/{group_category_id}", response_model=group_categories.GroupCategory)
+def read_group_category(group_category_id: int, db: Session = Depends(get_db)):
+    db_group_category = crud.get_group_category(db, group_category_id=group_category_id)
+    if db_group_category is None:
+        raise HTTPException(status_code=404, detail="Group Category not found")
+    return db_group_category
+
+# Update specified group category
+@app.post("/group/category/update/{group_category_id}") #, response_model=group_categories.GroupCategory
+def update_group_category(group_category_id: int, group_category: group_categories.GroupCategoryCreate, db: Session = Depends(get_db)):
+    db_group_category = crud.update_group_category(db, group_category_id, group_category)
+    if db_group_category is None:
+        raise HTTPException(status_code=404, detail="Group Category not found")
+    return {"message": "Group Category has been updated succesfully"}
+
+# Delete specified group category
+@app.post("/group/category/delete{group_category_id}")
+def delete_group_category(group_category_id: int, db: Session = Depends(get_db)):
+    db_group_category = crud.delete_group_category(db, group_category_id)
+    if db_group_category == 1:
+        return {"message": "Group Category has been deleted succesfully"}
+
+# @app.get("/users/group/category/{user_id}", response_model=user_schemas.User_Group_Categories)
+# def read_user(user_id: int, db: Session = Depends(get_db)):
+#     db_user = crud.create_group_category(db, user_id=user_id)
+#     if db_user is None:
+#         raise HTTPException(status_code=404, detail="User not found")
+#     return db_user
 
 
 @app.get("/stream")

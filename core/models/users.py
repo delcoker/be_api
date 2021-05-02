@@ -39,14 +39,13 @@ class GroupCategory(Base):
     group_category_name = Column(String, index=True)
 
     owner_of_group_category = relationship("User", back_populates="group_categories")
-    categories = relationship("Category", back_populates="owner_of_category")
+    categories = relationship("Category", back_populates="group_category")
     
 
 class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey('users.id'))
     group_category_id = Column(Integer, ForeignKey('group_categories.id'))
     category_name = Column(String, index=True)
 
@@ -58,8 +57,6 @@ class Keyword(Base):
     __tablename__ = "keywords"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer,  ForeignKey('users.id'))
-    group_category_id = Column(Integer, ForeignKey('group_categories.id'))
     category_id = Column(Integer,  ForeignKey('categories.id'))
     track = Column(String, index=True)
 

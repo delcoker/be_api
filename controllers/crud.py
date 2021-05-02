@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 # Import model and schemas from other folders
 from core.models import users
 from core.schemas import user_schemas
+from core.schemas import group_categories
 from core.models.database import SessionLocal, engine
 
 # Import OAuth2 
@@ -167,19 +168,6 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
     # Limit and offset works like pagination
     return db.query(users.User).offset(skip).limit(limit).all()
 
-# def create_user(db: Session, user: user_schemas.UserCreate):
-#     fake_hashed_password = user.password + "notreallyhashed"
-#     db_user = users.User(
-#         first_name=user.first_name,
-#         last_name=user.last_name,
-#         phone=user.phone,
-#         email=user.email, 
-#         password=fake_hashed_password)
-#     db.add(db_user)
-#     db.commit()
-#     db.refresh(db_user)
-#     return db_user
-
 # Code for generating bearer token
 def generate_bearer_token():
     bearer_token = base64.b64encode(
@@ -197,12 +185,45 @@ def generate_bearer_token():
 
     return data
 
+# Code for creating group category
+def create_group_category(db: Session, group_category: group_categories.GroupCategoryCreate):
+    db_group_category = users.GroupCategory(
+        user_id=group_category.user_id,
+        group_category_name=group_category.group_category_name
+    )
+    db.add(db_group_category)
+    db.commit()
+    db.refresh(db_group_category)
+    return db_group_category
 
+# Get all Group Categories
+def get_group_categories(db: Session):
+    # Limit and offset works like pagination
+    return db.query(users.GroupCategory).all()
+
+def get_group_category(db: Session, group_category_id: int):
+    return db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).first()
+
+
+def update_group_category(db: Session, group_category_id: int, group_category: group_categories.GroupCategoryCreate):
+    result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).update({
+        "user_id": group_category.user_id,
+        "group_category_name": group_category.group_category_name
+    })
+    db.commit()
+    return result
+
+def delete_group_category(db: Session, group_category_id: int):
+    result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).delete()
+    db.commit()
+    return result
+
+# Code for creating headers to connect to twitter for the streams
 def create_headers(bearer_token):
     headers = {"Authorization": "Bearer {}".format(bearer_token)}
     return headers
 
-
+# Get the rules that are stored by twitter for user account
 def get_rules(headers, bearer_token):
     response = requests.get(
         "https://api.twitter.com/2/tweets/search/stream/rules", headers=headers
@@ -215,7 +236,7 @@ def get_rules(headers, bearer_token):
     print(json.dumps(response.json()))
     return response.json()
 
-
+# Delete the rules stored by twitter for this user
 def delete_all_rules(headers, bearer_token, rules):
     if rules is None or "data" not in rules:
         return None
@@ -235,9 +256,8 @@ def delete_all_rules(headers, bearer_token, rules):
         )
     print(json.dumps(response.json()))
 
-
-# def set_rules(headers, delete, bearer_token):
-def set_rules(headers, bearer_token):
+# Code for setting the rules needed by twitter to start the fetch
+def set_rules(headers, delete, bearer_token):
     # You can adjust the rules if needed
     sample_rules = [
         {"value": "#ecg"},
@@ -259,7 +279,7 @@ def set_rules(headers, bearer_token):
         )
     print(json.dumps(response.json()))
 
-
+# Start getting tweets that contain the rules specified
 def get_stream(headers, set, bearer_token):
     response = requests.get(
         "https://api.twitter.com/2/tweets/search/stream", headers=headers, stream=True,
