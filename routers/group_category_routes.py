@@ -24,13 +24,15 @@ def group_category_create(group_category: group_categories.GroupCategoryCreate, 
     return crud.create_group_category(db, group_category)
 
 # Route to get group categories
-@router.get("/group/categories/", response_model=List[group_categories.GroupCategory])
+@router.get("/group/categories/", response_model=List[group_categories.GroupCategoryList])
 def get_group_categories(db: Session = Depends(get_db)):
     group_categories = crud.get_group_categories(db)
     return group_categories
 
 # Get specified group category
-@router.get("/group/category/{group_category_id}", response_model=group_categories.GroupCategory)
+
+
+@router.get("/group/category/{group_category_id}", response_model=group_categories.GroupCategoryList)
 def read_group_category(group_category_id: int, db: Session = Depends(get_db)):
     db_group_category = crud.get_group_category(
         db, group_category_id=group_category_id)
