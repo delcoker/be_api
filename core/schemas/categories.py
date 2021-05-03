@@ -7,13 +7,13 @@ class CategoryBase(BaseModel):
     category_name	: str
 
 
-class CategoryCreate(GroupCategoryBase):
+class CategoryCreate(CategoryBase):
     group_category_id: int
 
     class Config:
         orm_mode = True
 
-class Category(CategoryBase):
+class Category(CategoryCreate):
     id: int
     group_category_id: int
 

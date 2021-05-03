@@ -52,7 +52,7 @@ class User(UserBase):
         orm_mode = True
 
 
-class Logged_In_User(User):
+class Logged_In_User(BaseModel):
     token: str
     token_type: str
 

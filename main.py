@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from controllers import crud
 from core.schemas import user_schemas
 from core.models import users
-from routers import group_category_routes
+from routers import group_category_routes, category_routes
 from core.models.database import SessionLocal, engine
 # Import JWT and authentication dependencies needed
 from jose import JWTError, jwt  # Encoding and decoding jwt
@@ -80,6 +80,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 #     return current_user
 
 app.include_router(group_category_routes.router)
+app.include_router(category_routes.router)
 
 @app.post("/login", response_model=user_schemas.Logged_In_User)
 def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
