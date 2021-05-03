@@ -48,7 +48,7 @@ def update_group_category(group_category_id: int, group_category: group_categori
     return {"message": "Group Category has been updated succesfully"}
 
 # Delete specified group category
-@router.post("/group/category/delete{group_category_id}")
+@router.post("/group/category/delete/{group_category_id}")
 def delete_group_category(group_category_id: int, db: Session = Depends(get_db)):
     db_group_category = crud.delete_group_category(db, group_category_id)
     if db_group_category == 1:

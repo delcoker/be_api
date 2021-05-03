@@ -33,3 +33,19 @@ def create_category(db: Session, category: categories.CategoryCreate):
 # Get a specific Category
 def get_category(db: Session, category_id: int):
     return db.query(users.Category).filter(users.Category.id == category_id).first()
+
+# Update a particular category
+def update_category(db: Session, category_id: int, category: categories.CategoryCreate):
+    result = db.query(users.Category).filter(users.Category.id == category_id).update({
+        "group_category_id": category.group_category_id,
+        "category_name": category.category_name
+    })
+    db.commit()
+    return result
+
+# Delete a particular category
+def delete_category(db: Session, category_id: int):
+    result = db.query(users.Category).filter(
+        users.Category.id == category_id).delete()
+    db.commit()
+    return result

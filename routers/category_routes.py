@@ -41,11 +41,24 @@ def read_category(category_id: int, db: Session = Depends(get_db)):
     db_category = category_controller.get_category(
         db, category_id=category_id)
     if db_category is None:
-        raise HTTPException(status_code=404, detail="Group Category not found")
+        raise HTTPException(status_code=404, detail="Category not found")
     return db_category
 
-# # Update specified group category
+# Update specified category
+@router.post("/update/{category_id}")
+def update_category(category_id: int, category: categories.CategoryCreate, db: Session = Depends(get_db)):
+    db_category = category_controller.update_category(
+        db, category_id, category)
+    if db_category is None:
+        raise db_category(status_code=404, detail="Category not found")
+    return {"message": "Category has been updated succesfully"}
 
+# Delete specified category
+@router.post("/delete/{category_id}")
+def delete_category(category_id: int, db: Session = Depends(get_db)):
+    db_category = category_controller.delete_category(db, category_id)
+    if db_category == 1:
+        return {"message": "Category has been deleted succesfully"}
 
 # # , response_model=group_categories.GroupCategory
 # @router.post("/group/category/update/{group_category_id}")
