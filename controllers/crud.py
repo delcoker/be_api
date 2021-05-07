@@ -30,8 +30,6 @@ load_dotenv()
 
 
 # Dependency
-
-
 def get_db():
     db = SessionLocal()
     try:
@@ -57,10 +55,8 @@ oauth2_scheme = OAuth2PasswordBearer(
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
-
 def get_password_hash(password):
     return pwd_context.hash(password)
-
 
 # Retrieve a user based on their email
 # def get_user(db: Session, email: str):
@@ -68,7 +64,6 @@ def get_password_hash(password):
 
 def get_user_by_email(db: Session, email: str):
     return db.query(users.User).filter(users.User.email == email).first()
-
 
 def create_user(db: Session, user: user_schemas.UserCreate):
     db_user = users.User(
@@ -81,7 +76,6 @@ def create_user(db: Session, user: user_schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
-
 
 # Authenticate and return a user
 def authenticate_user(db: Session, email: str, password: str):
@@ -161,12 +155,14 @@ def store_user_social_account(db: Session, oauth_token: str, oauth_token_secret:
 
 
 def get_user(db: Session, user_id: int):
+    # return db.query(users.User).filter(users.User.id == user_id).first()
     return db.query(users.User).filter(users.User.id == user_id).first()
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 100):
+def get_users(db: Session):  # , skip: int = 0, limit: int = 100
     # Limit and offset works like pagination
-    return db.query(users.User).offset(skip).limit(limit).all()
+    # return db.query(users.User).offset(skip).limit(limit).all()
+    return db.query(users.User).all()
 
 # Code for generating bearer token
 def generate_bearer_token():
@@ -203,7 +199,6 @@ def get_group_categories(db: Session):
 
 def get_group_category(db: Session, group_category_id: int):
     return db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).first()
-
 
 def update_group_category(db: Session, group_category_id: int, group_category: group_categories.GroupCategoryCreate):
     result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).update({

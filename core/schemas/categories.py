@@ -1,19 +1,20 @@
 from typing import List, Optional
 
 from pydantic import BaseModel
-
+from core.schemas.keywords import Keyword
 
 class CategoryBase(BaseModel):
     category_name	: str
 
 
-class CategoryCreate(GroupCategoryBase):
+class CategoryCreate(CategoryBase):
     group_category_id: int
+    keywords: List[Keyword] = []
 
     class Config:
         orm_mode = True
 
-class Category(CategoryBase):
+class Category(CategoryCreate):
     id: int
     group_category_id: int
 

@@ -3,14 +3,12 @@ from fastapi import Depends, FastAPI, HTTPException, status, Form
 from sqlalchemy.orm import Session
 
 from controllers import crud
-from core.schemas import user_schemas
 from core.models import users
-from routers import group_category_routes
+from routers import group_category_routes, category_routes, user_routes
 from core.models.database import SessionLocal, engine
 # Import JWT and authentication dependencies needed
 from jose import JWTError, jwt  # Encoding and decoding jwt
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from datetime import datetime, timedelta
+
 
 # Import os and dotenv to read data from env file
 import os
@@ -70,7 +68,6 @@ def get_db():
     finally:
         db.close()
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -80,38 +77,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 #     return current_user
 
 app.include_router(group_category_routes.router)
+app.include_router(category_routes.router)
+app.include_router(user_routes.router)
 
-@app.post("/login", response_model=user_schemas.Logged_In_User)
-def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    user: user_schemas.Logged_In_User = crud.authenticate_user(
-        db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = crud.create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
-    )
-    user.token = access_token
-    user.token_type = "bearer"
-    return user
-
-
-@app.post("/user/me/", response_model=user_schemas.User)
-def read_users_me(token: str = Form(...), db: Session = Depends(get_db)):
-    current_user: users.User = crud.get_current_user(db, token)
-    return current_user
-
-
-@app.post("/register", response_model=user_schemas.UserBase)
-def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=user)
 
 @app.get('/login/twitter')
 async def login_via_twitter(request: Request):
@@ -139,18 +107,6 @@ async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...),
                                                        oauth_tokens.get('oauth_token_secret'), token, account)
     # Return response/data after the function stores the details
     return db_social_account
-
-@app.get("/users/", response_model=List[user_schemas.User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    users = crud.get_users(db, skip=skip, limit=limit)
-    return users
-
-@app.get("/users/{user_id}", response_model=user_schemas.User)
-def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user_id=user_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
 
 # @app.get("/users/group/category/{user_id}", response_model=user_schemas.User_Group_Categories)
 # def read_user(user_id: int, db: Session = Depends(get_db)):

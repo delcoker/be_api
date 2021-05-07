@@ -8,7 +8,7 @@ from core.schemas import group_categories
 from core.models.database import SessionLocal, engine
 # from dependency.dependencies import get_db
 
-router = APIRouter()
+router = APIRouter(tags=["group categories"],)
 
 #  Dependency
 async def get_db():
@@ -19,7 +19,7 @@ async def get_db():
         db.close()
 
 # Route to store group categories
-@router.post("/group/category/create/", response_model=group_categories.GroupCategory)
+@router.post("/group/category/create/", response_model=group_categories.GroupCategoryCreate)
 def group_category_create(group_category: group_categories.GroupCategoryCreate, db: Session = Depends(get_db)):
     return crud.create_group_category(db, group_category)
 
@@ -30,7 +30,7 @@ def get_group_categories(db: Session = Depends(get_db)):
     return group_categories
 
 # Get specified group category
-@router.get("/group/category/{group_category_id}", response_model=group_categories.GroupCategory)
+@router.get("/group/category/{group_category_id}", response_model=group_categories.GroupCategoryList)
 def read_group_category(group_category_id: int, db: Session = Depends(get_db)):
     db_group_category = crud.get_group_category(
         db, group_category_id=group_category_id)
@@ -48,7 +48,7 @@ def update_group_category(group_category_id: int, group_category: group_categori
     return {"message": "Group Category has been updated succesfully"}
 
 # Delete specified group category
-@router.post("/group/category/delete{group_category_id}")
+@router.post("/group/category/delete/{group_category_id}")
 def delete_group_category(group_category_id: int, db: Session = Depends(get_db)):
     db_group_category = crud.delete_group_category(db, group_category_id)
     if db_group_category == 1:
