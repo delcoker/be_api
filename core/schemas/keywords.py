@@ -6,13 +6,13 @@ class KeywordBase(BaseModel):
     keywords: str
 
 class KeywordCreate(KeywordBase):
-    category_id: int
+    category_id: Optional[int]
 
     class Config:
         orm_mode = True
 
 class Keyword(KeywordCreate):
-    id: int
+    id: Optional[int]
 
     class Config:
         orm_mode = True

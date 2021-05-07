@@ -42,7 +42,8 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-    status: bool
+    is_active: bool
+    is_deleted: bool
 
     # social_accounts: List[SocialAccount] = []
 

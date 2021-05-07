@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from pydantic import BaseModel
-
+from core.schemas.keywords import Keyword
 
 class CategoryBase(BaseModel):
     category_name	: str
@@ -9,6 +9,7 @@ class CategoryBase(BaseModel):
 
 class CategoryCreate(CategoryBase):
     group_category_id: int
+    keywords: List[Keyword] = []
 
     class Config:
         orm_mode = True

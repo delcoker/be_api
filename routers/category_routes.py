@@ -15,8 +15,6 @@ router = APIRouter(
     )
 
 #  Dependency
-
-
 async def get_db():
     db = SessionLocal()
     try:
