@@ -75,6 +75,13 @@ def create_user(db: Session, user: user_schemas.UserCreate):
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
+    # db_group_category = users.GroupCategory(
+    #     user_id = db_user.id,
+    #     group_category_name = "Topic"
+    # )
+    # db.add(db_group_category)
+    # db.commit()
+    # db.refresh(db_group_category)
     return db_user
 
 # Authenticate and return a user

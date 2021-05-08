@@ -36,14 +36,14 @@ class UserBase(BaseModel):
     email: str
     phone: str
 
-class UserCreate(UserBase):
-    password: str
-
 
 class User(UserBase):
-    id: int
-    is_active: bool
-    is_deleted: bool
+    id: Optional[int]
+    is_active: Optional[bool]
+    is_deleted: Optional[bool]
+
+class UserCreate(User):
+    password: str
 
     # social_accounts: List[SocialAccount] = []
 

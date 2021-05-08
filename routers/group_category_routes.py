@@ -8,7 +8,7 @@ from core.schemas import group_categories
 from core.models.database import SessionLocal, engine
 # from dependency.dependencies import get_db
 
-router = APIRouter(tags=["group categories"],)
+router = APIRouter(tags=["Group Categories"],)
 
 #  Dependency
 async def get_db():
