@@ -47,15 +47,14 @@ def get_category(db: Session, category_id: int):
 # Update a particular category
 
 
-def update_category(db: Session, token: str, category_id: str, category_name: str, group_category_id: int, keywords: str):
+def update_category(db: Session, category_id: str, token: str, category_name: str, group_category_id: int, keywords: str):
     result = db.query(users.Category).filter(users.Category.id == category_id).update({
         "group_category_id": group_category_id,
         "category_name": category_name
     })
     db.commit()
-    db.refresh(result)
     if keywords:
-        db.query(users.Keyword).filter(users.Keyword.id == category_id).update({
+        db.query(users.Keyword).filter(users.Keyword.category_id == category_id).update({
             "keywords": keywords
         })
     db.commit()

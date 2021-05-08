@@ -45,9 +45,9 @@ def read_category(category_id: int, db: Session = Depends(get_db)):
 
 # Update specified category
 @router.post("/update/{category_id}")
-def update_category(token:str, category_id: int, category_name: str = Form(...), group_category_id: int = Form(...), keywords: str = Form(...), db: Session = Depends(get_db)):
+def update_category( category_id: int, token: str = Form(...), category_name: str = Form(...), group_category_id: int = Form(...), keywords: str = Form(...), db: Session = Depends(get_db)):
     db_category = category_controller.update_category(
-        db, token, category_id, category_name, group_category_id, keywords)
+        db, category_id, token, category_name, group_category_id, keywords)
     if db_category is None:
         raise db_category(status_code=404, detail="Category not found")
     return {"message": "Category has been updated succesfully"}
