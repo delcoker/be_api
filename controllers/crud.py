@@ -65,23 +65,23 @@ def get_password_hash(password):
 def get_user_by_email(db: Session, email: str):
     return db.query(users.User).filter(users.User.email == email).first()
 
-def create_user(db: Session, user: user_schemas.UserCreate):
+def create_user(db: Session, first_name: str, last_name: str, email: str, phone: str, password: str):
     db_user = users.User(
-        first_name=user.first_name,
-        last_name=user.last_name,
-        phone=user.phone,
-        email=user.email,
-        password=get_password_hash(user.password))
+        first_name=first_name,
+        last_name=last_name,
+        phone=phone,
+        email=email,
+        password=get_password_hash(password))
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    # db_group_category = users.GroupCategory(
-    #     user_id = db_user.id,
-    #     group_category_name = "Topic"
-    # )
-    # db.add(db_group_category)
-    # db.commit()
-    # db.refresh(db_group_category)
+    db_group_category = users.GroupCategory(
+        user_id = db_user.id,
+        group_category_name = "Topic"
+    )
+    db.add(db_group_category)
+    db.commit()
+    db.refresh(db_group_category)
     return db_user
 
 # Authenticate and return a user
@@ -189,14 +189,16 @@ def generate_bearer_token():
     return data
 
 # Code for creating group category
-def create_group_category(db: Session, group_category: group_categories.GroupCategoryCreate):
+def create_group_category(db: Session, token: str, group_category_name: str):
+    user = get_current_user(db, token)
     db_group_category = users.GroupCategory(
-        user_id=group_category.user_id,
-        group_category_name=group_category.group_category_name
+        user_id= user.id,
+        group_category_name = group_category_name
     )
     db.add(db_group_category)
     db.commit()
     db.refresh(db_group_category)
+    print(db_group_category)
     return db_group_category
 
 # Get all Group Categories
@@ -204,18 +206,22 @@ def get_group_categories(db: Session):
     # Limit and offset works like pagination
     return db.query(users.GroupCategory).all()
 
-def get_group_category(db: Session, group_category_id: int):
+def get_group_category(db: Session, group_category_id: int, token: str):
+    get_current_user(db, token)
     return db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).first()
 
-def update_group_category(db: Session, group_category_id: int, group_category: group_categories.GroupCategoryCreate):
+
+def update_group_category(db: Session, group_category_id: int, token: str, group_category_name: str):
+    user = get_current_user(db, token)
     result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).update({
-        "user_id": group_category.user_id,
-        "group_category_name": group_category.group_category_name
+        "group_category_name": group_category_name
     })
     db.commit()
     return result
 
-def delete_group_category(db: Session, group_category_id: int):
+
+def delete_group_category(db: Session, group_category_id: int, token: str):
+    get_current_user(db, token)
     result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).delete()
     db.commit()
     return result

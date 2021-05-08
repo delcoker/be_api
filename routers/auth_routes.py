@@ -25,16 +25,16 @@ async def get_db():
         db.close()
 
 # Create user
-@router.post("/register", response_model=user_schemas.UserBase)
-def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_email(db, email=user.email)
+@router.post("/register")
+def create_user(first_name: str = Form(...), last_name: str = Form(...), email: str = Form(...), phone: str = Form(...), password: str = Form(...),  db: Session = Depends(get_db)):
+    db_user = crud.get_user_by_email(db, email=email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    return crud.create_user(db=db, user=user)
+    crud.create_user(db, first_name, last_name, email, phone, password)
+    return {"message": "User created succesfully"}  # , "status_code": 200
+
 
 # User login
-
-
 @router.post("/login", response_model=user_schemas.Logged_In_User)
 def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
     user: user_schemas.Logged_In_User = crud.authenticate_user(
