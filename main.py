@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from controllers import crud
 from core.models import users
-from routers import auth_routes, group_category_routes, category_routes, user_routes
+from routers import auth_routes, group_category_routes, category_routes, scope_routes, user_routes
 from core.models.database import SessionLocal, engine
 # Import JWT and authentication dependencies needed
 from jose import JWTError, jwt  # Encoding and decoding jwt
@@ -79,6 +79,7 @@ def get_db():
 app.include_router(auth_routes.router)
 app.include_router(group_category_routes.router)
 app.include_router(category_routes.router)
+app.include_router(scope_routes.router)
 app.include_router(user_routes.router)
 
 
