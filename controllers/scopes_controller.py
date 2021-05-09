@@ -2,7 +2,7 @@
 from sqlalchemy.orm import Session
 
 # Custom
-from core.models.database import SessionLocal, engine, get
+from core.models.database import SessionLocal, engine
 # from core.schemas import categories
 from core.models import users
 from controllers.crud import get_current_user
@@ -38,19 +38,20 @@ def get_scopes(db: Session, token:str):
 # Get a particular scope
 def get_scope(db: Session, token: str, scope_id: int):
     user = get_current_user(db, token)
-    return db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id, users.GroupCategory.user_id == user.id).first()
+    return db.query(users.Scope).filter(users.Scope.id == scope_id, users.Scope.user_id == user.id).first()
 
-
-def update_group_category(db: Session, group_category_id: int, group_category_name: str):
-    result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).update({
-        "group_category_name": group_category_name
+# Update a scope
+def update_scope(db: Session, scope_id: int, scope_name: str, scope: str):
+    result = db.query(users.Scope).filter(users.Scope.id == scope_id).update({
+        "name": scope_name,
+        "scope": scope
     })
     db.commit()
     return result
 
-
-def delete_group_category(db: Session, group_category_id: int):
+# Delete a scope
+def delete_scope(db: Session, scope_id: int):
     # get_current_user(db, token)
-    result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).delete()
+    result = db.query(users.Scope).filter(users.Scope.id == scope_id).delete()
     db.commit()
     return result
