@@ -189,7 +189,7 @@ def generate_bearer_token():
     return data
 
 # Code for creating group category
-def create_group_category(db: Session, token: str, group_category_name: str):
+def create_group_category(db: Session, group_category_name: str, token:str):
     user = get_current_user(db, token)
     db_group_category = users.GroupCategory(
         user_id= user.id,
@@ -198,21 +198,21 @@ def create_group_category(db: Session, token: str, group_category_name: str):
     db.add(db_group_category)
     db.commit()
     db.refresh(db_group_category)
-    print(db_group_category)
     return db_group_category
 
 # Get all Group Categories
-def get_group_categories(db: Session):
-    # Limit and offset works like pagination
-    return db.query(users.GroupCategory).all()
-
-def get_group_category(db: Session, group_category_id: int, token: str):
-    get_current_user(db, token)
-    return db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).first()
-
-
-def update_group_category(db: Session, group_category_id: int, token: str, group_category_name: str):
+def get_group_categories(db: Session, token:str):
     user = get_current_user(db, token)
+    # Limit and offset works like pagination
+    return db.query(users.GroupCategory).filter(users.GroupCategory.user_id == user.id).all()
+
+
+def get_group_category(db: Session, token: str, group_category_id: int):
+    user = get_current_user(db, token)
+    return db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id, users.GroupCategory.user_id == user.id).first()
+
+
+def update_group_category(db: Session, group_category_id: int, group_category_name: str):
     result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).update({
         "group_category_name": group_category_name
     })
@@ -220,8 +220,8 @@ def update_group_category(db: Session, group_category_id: int, token: str, group
     return result
 
 
-def delete_group_category(db: Session, group_category_id: int, token: str):
-    get_current_user(db, token)
+def delete_group_category(db: Session, group_category_id: int):
+    # get_current_user(db, token)
     result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).delete()
     db.commit()
     return result
