@@ -38,9 +38,9 @@ class UserBase(BaseModel):
 
 
 class User(UserBase):
-    id: Optional[int]
-    is_active: Optional[bool]
-    is_deleted: Optional[bool]
+    id: int
+    # is_active: bool
+    # is_deleted: bool
 
 class UserCreate(User):
     password: str
@@ -53,7 +53,7 @@ class UserCreate(User):
         orm_mode = True
 
 
-class Logged_In_User(BaseModel):
+class Logged_In_User(User):
     token: str
     token_type: str
 
