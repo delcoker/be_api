@@ -31,7 +31,7 @@ def create_user(first_name: str = Form(...), last_name: str = Form(...), email: 
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     crud.create_user(db, first_name, last_name, email, phone, password)
-    return {"message": "User created succesfully"}  # , "status_code": 200
+    return {"message": "User created successfully"}  # , "status_code": 200
 
 
 # User login

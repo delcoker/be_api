@@ -31,7 +31,7 @@ def scope_create(req: Request, scope_name: str = Form(...), scope: str = Form(..
         db, scope_name, scope, req.headers['token'])
     if db_scope is None:
         raise HTTPException(status_code=404, detail="Scope could not be created")
-    return {"message": "Scope created succesfully"}
+    return {"message": "Scope created successfully"}
 
 # Route to get scopes
 @router.get("/", response_model=List[scopes.Scope])
@@ -55,7 +55,7 @@ def update_scope(scope_id: int, scope_name: str = Form(...), scope: str = Form(.
         db, scope_id, scope_name, scope)
     if db_scope is None:
         raise HTTPException(status_code=404, detail="Scope not found")
-    return {"message": "Scope has been updated succesfully"}
+    return {"message": "Scope has been updated successfully"}
 
 # Delete specified scope
 @router.post("/delete/{scope_id}")
@@ -63,5 +63,5 @@ def delete_scope(scope_id: int, db: Session = Depends(get_db)):
     db_scope = scopes_controller.delete_scope(
         db, scope_id)
     if db_scope == 1:
-        return {"message": "Scope has been deleted succesfully"}
+        return {"message": "Scope has been deleted successfully"}
 

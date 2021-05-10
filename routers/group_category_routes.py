@@ -28,7 +28,7 @@ def group_category_create(req: Request, group_category_name: str = Form(...), db
         db, group_category_name, req.headers['token'])
     if db_group_category is None:
         raise HTTPException(status_code=404, detail="Group Category could not be created")
-    return {"message": "Group Category created succesfully"}
+    return {"message": "Group Category created successfully"}
 
 # Route to get group categories
 @router.get("/group/categories/", response_model=List[group_categories.GroupCategoryList])
@@ -52,11 +52,11 @@ def update_group_category(group_category_id: int, group_category_name: str = For
         db, group_category_id, group_category_name)
     if db_group_category is None:
         raise HTTPException(status_code=404, detail="Group Category not found")
-    return {"message": "Group Category has been updated succesfully"}
+    return {"message": "Group Category has been updated successfully"}
 
 # Delete specified group category
 @router.post("/group/category/delete/{group_category_id}")
 def delete_group_category(group_category_id: int, db: Session = Depends(get_db)):
     db_group_category = crud.delete_group_category(db, group_category_id)
     if db_group_category == 1:
-        return {"message": "Group Category has been deleted succesfully"}
+        return {"message": "Group Category has been deleted successfully"}

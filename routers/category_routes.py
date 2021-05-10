@@ -33,7 +33,7 @@ def get_all_categories(req: Request, db: Session = Depends(get_db)):
 @router.post("/create")
 def create_category(category_name: str = Form(...), group_category_id: int = Form(...), keywords: str = Form(...), db: Session = Depends(get_db)):
     category_controller.create_category(db, category_name, group_category_id, keywords)
-    return {"message": "Category created succesfully"}
+    return {"message": "Category created successfully"}
 
 # Get specified category
 @router.get("/{category_id}", response_model=categories.Category)
@@ -51,11 +51,11 @@ def update_category(category_id: int, category_name: str = Form(...), group_cate
         db, category_id, category_name, group_category_id, keywords)
     if db_category is None:
         raise db_category(status_code=404, detail="Category not found")
-    return {"message": "Category has been updated succesfully"}
+    return {"message": "Category has been updated successfully"}
 
 # Delete specified category
 @router.post("/delete/{category_id}")
 def delete_category(category_id: int, db: Session = Depends(get_db)):
     db_category = category_controller.delete_category(db, category_id)
     if db_category == 1:
-        return {"message": "Category has been deleted succesfully"}
+        return {"message": "Category has been deleted successfully"}
