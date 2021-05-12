@@ -31,14 +31,14 @@ def create_category(db: Session, category_name: str, group_category_id: int, key
     db.commit()
     db.refresh(db_category)
 
-    if keywords:
-        db_keywords = users.Keyword(
-            category_id = db_category.id,
-            keywords = keywords
-        )
-        db.add(db_keywords)
-        db.commit()
-        db.refresh(db_keywords)
+    # if keywords:
+    db_keywords = users.Keyword(
+        category_id = db_category.id,
+        keywords = keywords
+    )
+    db.add(db_keywords)
+    db.commit()
+    db.refresh(db_keywords)
     return db_category
 
 # Get a specific Category
@@ -47,7 +47,7 @@ def get_category(db: Session, token:str, category_id: int):
     return db.query(users.Category).join(users.GroupCategory).filter(users.Category.id == category_id, users.GroupCategory.user_id == user.id).first()
 
 # Update a particular category
-def update_category(db: Session, category_id: str, token: str, category_name: str, group_category_id: int, keywords: str):
+def update_category(db: Session, category_id: str, category_name: str, group_category_id: int, keywords: str):
     result = db.query(users.Category).filter(users.Category.id == category_id).update({
         "group_category_id": group_category_id,
         "category_name": category_name

@@ -31,7 +31,7 @@ def get_all_categories(req: Request, db: Session = Depends(get_db)):
 
 # Route to create a category
 @router.post("/create")
-def create_category(category_name: str = Form(...), group_category_id: int = Form(...), keywords: str = Form(...), db: Session = Depends(get_db)):
+def create_category(category_name: str = Form(...), group_category_id: int = Form(...), keywords: str = Form(None), db: Session = Depends(get_db)):
     category_controller.create_category(db, category_name, group_category_id, keywords)
     return {"message": "Category created successfully"}
 

@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 class KeywordBase(BaseModel):
-    keywords: str
+    keywords: Optional[str]
 
 class KeywordCreate(KeywordBase):
     category_id: int
