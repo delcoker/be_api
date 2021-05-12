@@ -26,9 +26,9 @@ async def get_db():
 
 # Route to store a scope
 @router.post("/create")
-def scope_create(req: Request, scope_name: str = Form(...), scope: str = Form(...), db: Session = Depends(get_db)):
+def scope_create(req: Request, scope: str = Form(...), db: Session = Depends(get_db)):
     db_scope = scopes_controller.create_scope(
-        db, scope_name, scope, req.headers['token'])
+        db, scope, req.headers['token'])
     if db_scope is None:
         raise HTTPException(status_code=404, detail="Scope could not be created")
     return {"message": "Scope created successfully"}

@@ -3,7 +3,6 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 class ScopeBase(BaseModel):
-    name: str
     scope: str
 
 class ScopeCreate(ScopeBase):

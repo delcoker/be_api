@@ -69,7 +69,6 @@ class Scope(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer,  ForeignKey('users.id'))
-    name = Column(String, index=True)
     scope = Column(String, index=True)
 
     creator = relationship("User", back_populates="scopes")
