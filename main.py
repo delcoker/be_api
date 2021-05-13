@@ -30,7 +30,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.schemas.user_schemas import Url
 import base64
-from fastapi.security import OAuth2PasswordBearer
+# from fastapi.security import OAuth2PasswordBearer
 
 authenticate_url = 'https://api.twitter.com/oauth/authenticate'
 authorize_url = 'https://api.twitter.com/oauth/authorize'
@@ -70,7 +70,7 @@ def get_db():
         db.close()
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 # async def get_current_active_user(current_user: User = Depends(get_current_user)):
 #     if current_user.disabled:
@@ -78,10 +78,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 #     return current_user
 
 app.include_router(auth_routes.router)
-app.include_router(group_category_routes.router, dependencies=[Depends(oauth2_scheme)])
-app.include_router(category_routes.router, dependencies=[Depends(oauth2_scheme)])
-app.include_router(scope_routes.router, dependencies=[Depends(oauth2_scheme)])
-app.include_router(user_routes.router, dependencies=[Depends(oauth2_scheme)])
+app.include_router(group_category_routes.router)
+app.include_router(category_routes.router)
+app.include_router(scope_routes.router)
+app.include_router(user_routes.router)
 
 
 @app.get('/login/twitter')
