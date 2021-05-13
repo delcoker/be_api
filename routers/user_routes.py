@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, status, Form
 from typing import List
 from sqlalchemy.orm import Session
+from starlette.requests import Request
+
 
 # Custom
 from core.models.database import SessionLocal, engine
@@ -33,8 +35,8 @@ def get_users(db: Session = Depends(get_db)):
 
 # Return current user data
 @router.post("/user/me/", response_model=user_schemas.User)
-def read_users_me(token: str = Form(...), db: Session = Depends(get_db)):
-    current_user: users.User = crud.get_current_user(db, token)
+def read_users_me(req: Request, db: Session = Depends(get_db)):
+    current_user: users.User = crud.get_current_user(db, req.headers['token'])
     return current_user
 
 @router.get("/{user_id}", response_model=user_schemas.User)

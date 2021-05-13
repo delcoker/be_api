@@ -42,6 +42,10 @@ class User(UserBase):
     # is_active: bool
     # is_deleted: bool
 
+    class Config:
+        orm_mode = True
+
+
 class UserCreate(User):
     password: str
 
