@@ -25,13 +25,13 @@ async def get_db():
         db.close()
 
 # Create user
-@router.post("/register")
+@router.post("/register", response_model=user_schemas.User)
 def create_user(first_name: str = Form(...), last_name: str = Form(...), email: str = Form(...), phone: str = Form(...), password: str = Form(...),  db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    crud.create_user(db, first_name, last_name, email, phone, password)
-    return {"message": "User created successfully"}  # , "status_code": 200
+    created_user = crud.create_user(db, first_name, last_name, email, phone, password)
+    return created_user  # , "status_code": 200
 
 
 # User login
