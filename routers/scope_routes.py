@@ -50,9 +50,9 @@ def read_scope(scope_id: int, req: Request, db: Session = Depends(get_db)):
 
 # Update specified scope
 @router.post("/update/{scope_id}")# , response_model=group_categories.GroupCategory
-def update_scope(scope_id: int, scope_name: str = Form(...), scope: str = Form(...), db: Session = Depends(get_db)):
+def update_scope(scope_id: int, scope: str = Form(...), db: Session = Depends(get_db)):
     db_scope = scopes_controller.update_scope(
-        db, scope_id, scope_name, scope)
+        db, scope_id, scope)
     if db_scope is None:
         raise HTTPException(status_code=404, detail="Scope not found")
     return {"message": "Scope has been updated successfully"}
