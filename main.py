@@ -2,7 +2,7 @@ from typing import List
 from fastapi import Depends, FastAPI, HTTPException, status, Form
 from sqlalchemy.orm import Session
 
-from controllers import crud
+from controllers import crud, streams_controller
 from core.models import users
 from routers import auth_routes, group_category_routes, category_routes, scope_routes, user_routes
 from core.models.database import SessionLocal, engine
@@ -30,6 +30,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.schemas.user_schemas import Url
 import base64
+from dependency.dependencies import get_user_token
 # from fastapi.security import OAuth2PasswordBearer
 
 authenticate_url = 'https://api.twitter.com/oauth/authenticate'
@@ -118,13 +119,12 @@ async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...),
 #         raise HTTPException(status_code=404, detail="User not found")
 #     return db_user
 
-
-@app.get("/stream")
-def main():
+@app.get("/stream", dependencies=[Depends(get_user_token)])
+def main(req: Request):
     bearer_token = "AAAAAAAAAAAAAAAAAAAAAAR4GwEAAAAAgkH0ksQzl%2B7Kwa9xMK4yXVdrci4%3DZaRE7GIRRMvm2VwcqvzV7zrpcaL6BqUvUfwHZk5aUZzf4ON0Ev"
     # bearer_token = "AAAAAAAAAAAAAAAAAAAAAKd99QAAAAAAFT%2BLsnpKWIBwEp3XSOP%2ByOViZes%3DtR26nwuAlgFIEV25QpLozw4p4Zn9xxzKYAAeVvkIRT7fbEu8R2"
-    headers = crud.create_headers(bearer_token)
-    rules = crud.get_rules(headers, bearer_token)
-    delete = crud.delete_all_rules(headers, bearer_token, rules)
-    set = crud.set_rules(headers, bearer_token)
-    crud.get_stream(headers, set, bearer_token)
+    headers = streams_controller.create_headers(bearer_token)
+    rules = streams_controller.get_rules(headers, bearer_token)
+    delete = streams_controller.delete_all_rules(headers, bearer_token, rules)
+    set = streams_controller.set_rules(headers, delete, bearer_token)
+    streams_controller.get_stream(headers, set, bearer_token, req.headers['token'])

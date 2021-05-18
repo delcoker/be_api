@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, TIMESTAMP
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -21,6 +21,7 @@ class User(Base):
     social_accounts = relationship("SocialAccount", back_populates="owner", cascade="all, delete", passive_deletes=True)  # so oncascade it should delete the data in other tables that are linked to it
     group_categories = relationship("GroupCategory", back_populates="owner_of_group_category", cascade="all, delete", passive_deletes=True)
     scopes = relationship("Scope", back_populates="creator", cascade="all, delete", passive_deletes=True)
+    posts = relationship("Post", back_populates="post_getter", cascade="all, delete", passive_deletes=True)
 
 class SocialAccount(Base):
     __tablename__ = "social_accounts"
@@ -72,3 +73,20 @@ class Scope(Base):
     scope = Column(String, index=True)
 
     creator = relationship("User", back_populates="scopes")
+
+class Post(Base):
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer,  ForeignKey('users.id'))
+    data_id = Column(String, index=True)
+    data_author_id = Column(String, index=True)
+    data_user_id = Column(String, index=True)
+    data_user_name = Column(String, index=True)
+    data_user_location = Column(String, index=True)
+    text = Column(String, index=True)
+    full_object = Column(String, index=True)
+    created_at = Column(TIMESTAMP, index=True)
+
+
+    post_getter = relationship("User", back_populates="posts")
