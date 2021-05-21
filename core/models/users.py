@@ -81,7 +81,7 @@ class Post(Base):
     user_id = Column(Integer,  ForeignKey('users.id'))
     data_id = Column(String, index=True)
     data_author_id = Column(String, index=True)
-    data_user_id = Column(String, index=True)
+    # data_user_id = Column(String, index=True)
     data_user_name = Column(String, index=True)
     data_user_location = Column(String, index=True)
     text = Column(String, index=True)

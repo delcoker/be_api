@@ -1,3 +1,5 @@
+from fastapi import Depends, HTTPException
+from sqlalchemy.orm import Session
 
 # Test for stream
 import requests
@@ -88,7 +90,8 @@ def set_rules(headers, delete, bearer_token):
         {"value": "#ecg"},
         {"value": "#esl"},
         {"value": "#dumsor"},
-        # {"value": "corona"},
+        {"value": "#fixthecountry"},
+        {"value": "corona"},
         # {"value": "dog has:images", "tag": "dog pictures"},
         # {"value": "cat has:images -grumpy", "tag": "cat pictures"},
     ]
@@ -106,9 +109,9 @@ def set_rules(headers, delete, bearer_token):
     print(json.dumps(response.json()))
 
 # Start getting tweets that contain the rules specified
-def get_stream(headers, set, bearer_token, token:str):
+def get_stream(headers, set, bearer_token,db): #, token:str
     response = requests.get(
-        "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,created_at,entities,geo,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld&expansions=author_id,geo.place_id", headers=headers, stream=True,
+        "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,created_at,entities,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld&expansions=author_id,geo.place_id&place.fields=contained_within,country,country_code,full_name,geo,id,name,place_type", headers=headers, stream=True,
         # "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld", headers=headers, stream=True,
     )
     print(response.status_code)
@@ -122,9 +125,36 @@ def get_stream(headers, set, bearer_token, token:str):
         if response_line:
             json_response = json.loads(response_line)
             # print(json.dumps(json_response, indent=4, sort_keys=True))
-            print(json.dumps(json_response, indent=4, sort_keys=True))
-            store_streams(json_response, token)
+            # data = json.dumps(json_response, indent=4, sort_keys=True)
+            print(json_response["data"])
+            store_streams(json_response,db)
 
-# def store_streams(stream_results, token: str, db: Session = Depends(get_db)):
-#     user = get_current_user(db, token)
-#     db_stream = users.
+def store_streams(stream_results, db: Session): #, token: str, db: Session = Depends(get_db)
+    # user = get_current_user(db, token)
+    if hasattr(stream_results["includes"], "places"):
+        geo_location = stream_results["includes"]["places"][0]["name"]
+    else:
+        geo_location = ''
+    db_stream = users.Post(
+        user_id = 1,
+        data_id = stream_results["data"]["id"],
+        data_author_id = stream_results["data"]["author_id"],
+        data_user_name = stream_results["includes"]["users"][0]["username"],
+        data_user_location = geo_location,
+        text = stream_results["data"]["text"],
+        full_object = json.dumps(stream_results, indent=4, sort_keys=True),
+        created_at = stream_results["data"]["created_at"]
+    )
+#     db_stream = users.Post(
+#     user_id = 1,
+#     data_id = "429845243",
+#     data_author_id = "347959834",
+#     data_user_name = "skank",
+#     data_user_location = '',
+#     text = "rt @username kdfkemiofnew",
+#     full_object = "jeifnweifgnweionfapiwefn",
+#     created_at = "2021-05-19T10:10:58.000Z"
+# )
+    db.add(db_stream)
+    db.commit()
+    db.refresh(db_stream)
