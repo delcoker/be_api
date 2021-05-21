@@ -84,17 +84,11 @@ def delete_all_rules(headers, bearer_token, rules):
     print(json.dumps(response.json()))
 
 # Code for setting the rules needed by twitter to start the fetch
-def set_rules(headers, delete, bearer_token):
-    # You can adjust the rules if needed
-    sample_rules = [
-        {"value": "#ecg"},
-        {"value": "#esl"},
-        {"value": "#dumsor"},
-        {"value": "#fixthecountry"},
-        {"value": "corona"},
-        # {"value": "dog has:images", "tag": "dog pictures"},
-        # {"value": "cat has:images -grumpy", "tag": "cat pictures"},
-    ]
+def set_rules(headers, delete, bearer_token, db):
+    scopes =  db.query(users.Scope).all()
+    sample_rules = []
+    for scope in scopes:
+        sample_rules.append({"value": scope.scope, "tag": scope.user_id})
     payload = {"add": sample_rules}
     response = requests.post(
         "https://api.twitter.com/2/tweets/search/stream/rules",
@@ -108,8 +102,9 @@ def set_rules(headers, delete, bearer_token):
         )
     print(json.dumps(response.json()))
 
+
 # Start getting tweets that contain the rules specified
-def get_stream(headers, set, bearer_token,db): #, token:str
+def get_stream(headers, set, bearer_token, db): #, token:str
     response = requests.get(
         "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,created_at,entities,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld&expansions=author_id,geo.place_id&place.fields=contained_within,country,country_code,full_name,geo,id,name,place_type", headers=headers, stream=True,
         # "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld", headers=headers, stream=True,
@@ -124,10 +119,10 @@ def get_stream(headers, set, bearer_token,db): #, token:str
     for response_line in response.iter_lines():
         if response_line:
             json_response = json.loads(response_line)
-            # print(json.dumps(json_response, indent=4, sort_keys=True))
+            print(json.dumps(json_response, indent=4, sort_keys=True))
             # data = json.dumps(json_response, indent=4, sort_keys=True)
-            print(json_response["data"])
-            store_streams(json_response,db)
+            # print(json_response["data"])
+            # store_streams(json_response,db)
 
 def store_streams(stream_results, db: Session): #, token: str, db: Session = Depends(get_db)
     # user = get_current_user(db, token)

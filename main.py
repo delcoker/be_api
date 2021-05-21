@@ -126,5 +126,5 @@ def main(req: Request, db: Session = Depends(get_db)):
     headers = streams_controller.create_headers(bearer_token)
     rules = streams_controller.get_rules(headers, bearer_token)
     delete = streams_controller.delete_all_rules(headers, bearer_token, rules)
-    set = streams_controller.set_rules(headers, delete, bearer_token)
+    set = streams_controller.set_rules(headers, delete, bearer_token, db)
     streams_controller.get_stream(headers, set, bearer_token, db)#, req.headers['token']
