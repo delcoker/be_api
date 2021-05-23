@@ -84,6 +84,10 @@ app.include_router(category_routes.router)
 app.include_router(scope_routes.router)
 app.include_router(user_routes.router)
 
+# @app.on_event("startup")
+# async def start_stream():
+#     print("heyooo")
+
 
 @app.get('/login/twitter')
 async def login_via_twitter(request: Request):

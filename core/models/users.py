@@ -79,6 +79,7 @@ class Post(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer,  ForeignKey('users.id'))
+    source_name = Column(String, index=True)
     data_id = Column(String, index=True)
     data_author_id = Column(String, index=True)
     # data_user_id = Column(String, index=True)
