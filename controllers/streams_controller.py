@@ -86,9 +86,12 @@ def delete_all_rules(headers, bearer_token, rules):
 # Code for setting the rules needed by twitter to start the fetch
 def set_rules(headers, delete, bearer_token, db):
     scopes =  db.query(users.Scope).all()
+    # Put scopes in map to group users with same scopes
+    scope_map = get_scopes_map(scopes)
+
     sample_rules = []
-    for scope in scopes:
-        sample_rules.append({"value": scope.scope, "tag": scope.user_id})
+    for scope, user_ids in scope_map.items():
+        sample_rules.append({"value": scope, "tag": user_ids})
     payload = {"add": sample_rules}
     response = requests.post(
         "https://api.twitter.com/2/tweets/search/stream/rules",
@@ -101,13 +104,24 @@ def set_rules(headers, delete, bearer_token, db):
                 response.status_code, response.text)
         )
     print(json.dumps(response.json()))
-
+    
+def get_scopes_map(scopes):
+    scope_map = {}
+    for scope_row in scopes:
+        scopes_obj = scope_row.scope.split(',') # split scopes
+        for scope in scopes_obj: 
+            sanitized_scope = scope.strip() # strip any leading or trailing whitespaces
+            if sanitized_scope in scope_map:
+                scope_map[sanitized_scope] = scope_map[sanitized_scope] + "," + str(scope_row.user_id) #if map has scope just concat user
+                # print(scope_map[sanitized_scope])
+            else:
+                scope_map[sanitized_scope] = str(scope_row.user_id) # else create an index for the scope with the user id
+    return scope_map # return scope map
 
 # Start getting tweets that contain the rules specified
 def get_stream(headers, set, bearer_token, db): #, token:str
     response = requests.get(
         "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,created_at,entities,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld&expansions=author_id,geo.place_id&place.fields=contained_within,country,country_code,full_name,geo,id,name,place_type", headers=headers, stream=True,
-        # "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld", headers=headers, stream=True,
     )
     print(response.status_code)
     if response.status_code != 200:
@@ -122,34 +136,35 @@ def get_stream(headers, set, bearer_token, db): #, token:str
             print(json.dumps(json_response, indent=4, sort_keys=True))
             # data = json.dumps(json_response, indent=4, sort_keys=True)
             # print(json_response["data"])
-            # store_streams(json_response,db)
+            store_streams(json_response,db)
 
 def store_streams(stream_results, db: Session): #, token: str, db: Session = Depends(get_db)
     # user = get_current_user(db, token)
+
+    # check for geo location if it exists
     if hasattr(stream_results["includes"], "places"):
         geo_location = stream_results["includes"]["places"][0]["name"]
     else:
         geo_location = ''
-    db_stream = users.Post(
-        user_id = 1,
-        data_id = stream_results["data"]["id"],
-        data_author_id = stream_results["data"]["author_id"],
-        data_user_name = stream_results["includes"]["users"][0]["username"],
-        data_user_location = geo_location,
-        text = stream_results["data"]["text"],
-        full_object = json.dumps(stream_results, indent=4, sort_keys=True),
-        created_at = stream_results["data"]["created_at"]
-    )
-#     db_stream = users.Post(
-#     user_id = 1,
-#     data_id = "429845243",
-#     data_author_id = "347959834",
-#     data_user_name = "skank",
-#     data_user_location = '',
-#     text = "rt @username kdfkemiofnew",
-#     full_object = "jeifnweifgnweionfapiwefn",
-#     created_at = "2021-05-19T10:10:58.000Z"
-# )
-    db.add(db_stream)
-    db.commit()
-    db.refresh(db_stream)
+
+    # Split user ids that are returned from twitter
+    user_ids = stream_results['matching_rules'][0]["tag"].split(",")
+    for user_id in user_ids: 
+        db_stream = users.Post(
+            user_id = user_id,
+            source_name = "twitter",
+            data_id = stream_results["data"]["id"],
+            data_author_id = stream_results["data"]["author_id"],
+            data_user_name = stream_results["includes"]["users"][0]["username"],
+            data_user_location = geo_location,
+            text = stream_results["data"]["text"],
+            full_object = json.dumps(stream_results, indent=4, sort_keys=True),
+            created_at = stream_results["data"]["created_at"]
+        )
+        try:
+            db.add(db_stream)
+            db.commit()
+            db.refresh(db_stream)
+        except Exception as e:
+            # print("NOT saved")
+            print(e)
