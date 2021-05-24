@@ -27,11 +27,15 @@ from requests_oauthlib import OAuth1
 from urllib.parse import urlencode, urljoin, parse_qs
 
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi_sqlalchemy import DBSessionMiddleware  # middleware helper
 from core.schemas.user_schemas import Url
 import base64
 from dependency.dependencies import get_user_token
+from controllers.streams_controller import MyTwitter
 # from fastapi.security import OAuth2PasswordBearer
+# Import os and dotenv to read data from env file
+import os
+from dotenv import load_dotenv
 
 authenticate_url = 'https://api.twitter.com/oauth/authenticate'
 authorize_url = 'https://api.twitter.com/oauth/authorize'
@@ -42,10 +46,10 @@ users.Base.metadata.create_all(bind=engine)
 
 # Creating a fastapi instance
 app = FastAPI()
-
+load_dotenv()
 # Created a session middleware  
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY'))
-
+app.add_middleware(DBSessionMiddleware, db_url=os.getenv('MYSQLURLPATH'))
 origins = [
     # "http://localhost.tiangolo.com",
     # "https://localhost.tiangolo.com",
@@ -84,6 +88,11 @@ app.include_router(category_routes.router)
 app.include_router(scope_routes.router)
 app.include_router(user_routes.router)
 
+@app.on_event("startup")
+async def start_stream(db: Session = Depends(get_db)):
+    MyTwitter()
+#     self.stream_queue = Queue()
+
 
 @app.get('/login/twitter')
 async def login_via_twitter(request: Request):
@@ -119,12 +128,10 @@ async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...),
 #         raise HTTPException(status_code=404, detail="User not found")
 #     return db_user
 
-@app.get("/stream") # , dependencies=[Depends(get_user_token)]
-def main(req: Request, db: Session = Depends(get_db)):
-    bearer_token = "AAAAAAAAAAAAAAAAAAAAAAR4GwEAAAAAgkH0ksQzl%2B7Kwa9xMK4yXVdrci4%3DZaRE7GIRRMvm2VwcqvzV7zrpcaL6BqUvUfwHZk5aUZzf4ON0Ev"
-    # bearer_token = "AAAAAAAAAAAAAAAAAAAAAKd99QAAAAAAFT%2BLsnpKWIBwEp3XSOP%2ByOViZes%3DtR26nwuAlgFIEV25QpLozw4p4Zn9xxzKYAAeVvkIRT7fbEu8R2"
-    headers = streams_controller.create_headers(bearer_token)
-    rules = streams_controller.get_rules(headers, bearer_token)
-    delete = streams_controller.delete_all_rules(headers, bearer_token, rules)
-    set = streams_controller.set_rules(headers, delete, bearer_token, db)
-    streams_controller.get_stream(headers, set, bearer_token, db)#, req.headers['token']
+# @app.get("/stream") # , dependencies=[Depends(get_user_token)]
+# def main(req: Request, db: Session = Depends(get_db)):
+    # headers = streams_controller.create_headers(bearer_token)
+    # rules = streams_controller.get_rules(headers, bearer_token)
+    # delete = streams_controller.delete_all_rules(headers, bearer_token, rules)
+    # set = streams_controller.set_rules(headers, delete, bearer_token, db)
+    # streams_controller.get_stream(headers, set, bearer_token, db)#, req.headers['token']
