@@ -83,7 +83,7 @@ app.include_router(user_routes.router)
 
 @app.on_event("startup")
 async def start_stream(db: Session = Depends(get_db)):
-    # MyTwitter()
+    MyTwitter()
 
 # @app.get("/stream") # , dependencies=[Depends(get_user_token)]
 # def main(req: Request, db: Session = Depends(get_db)):

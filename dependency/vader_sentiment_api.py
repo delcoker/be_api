@@ -55,5 +55,5 @@ class SentimentApi:
             self.getSentiment(sentence)
 
 
-x = SentimentApi()
-x.test()
+# x = SentimentApi()
+# x.test()

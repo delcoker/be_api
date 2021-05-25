@@ -20,6 +20,7 @@ from core.models import users
 from controllers.crud import get_current_user
 from queue import Queue
 import threading
+from dependency.vader_sentiment_api import SentimentApi
 
 load_dotenv()
 class MyTwitter:
@@ -42,32 +43,28 @@ class MyTwitter:
         return data
 
     def  __init__(self) -> None:
+        # Start queues for streams and sentiment scores
         self.stream_queue = Queue()
         self.sentiment_queue = Queue()
-        # self.stream_queue.put("heey")
-        # self.stream_middle_man()
-        # ONE THREAD FOR STORING INTO DB
-        threading.Thread(target=self.store_streams(db), daemon=True).start()
-        # start thread for scoring sentiment
-        # threading.Thread(target=self._check_for_tag_categories, daemon=True).start()
 
-        # ONE THREAD FOR SCORING SENTIMENT
-        # start stream
-        headers = self.create_headers(os.getenv('BEARER_TOKEN_SHAMIR'))
+        # Threads so functions can be running in background asynchronously
+        threading.Thread(target=self.store_streams, daemon=True).start()
+        threading.Thread(target=self.score_sentiment, daemon=True).start()
+
+        # create headers
+        headers = self.create_headers(os.getenv('BEARER_TOKEN_KINGSTON'))
+        # get rules
         rules = self.get_rules(headers)
+        # delete rules
         self.delete_all_rules(headers, rules)
+        # set rules
         self.set_rules(headers)
-        # self.get_stream(headers, db)#, req.headers['token']
-
-
-    def stream_middle_man(self):
-        test = self.stream_queue.get()
-        print(test)
+        # start stream
+        self.get_stream(headers)
 
 
     # Code for creating headers to connect to twitter for the streams
     def create_headers(self,bearer_token):
-        # bearer_token = generate_bearer_token()
         headers = {"Authorization": "Bearer {}".format(bearer_token)}
         return headers
 
@@ -80,7 +77,7 @@ class MyTwitter:
             raise Exception(
                 "Cannot get rules (HTTP {}): {}".format(response.status_code, response.text)
             )
-        print(json.dumps(response.json()))
+        # print(json.dumps(response.json()))
         return response.json()
 
     def delete_all_rules(self, headers, rules):
@@ -100,7 +97,7 @@ class MyTwitter:
                     response.status_code, response.text
                 )
             )
-        print(json.dumps(response.json()))
+        # print(json.dumps(response.json()))
 
     # Code for setting the rules needed by twitter to start the fetch
     def set_rules(self, headers):
@@ -108,7 +105,6 @@ class MyTwitter:
             scopes =  db.session.query(users.Scope).all()
             # Put scopes in map to group users with same scopes
             scope_map = self.get_scopes_map(scopes)
-            print(scope_map)
             sample_rules = []
             for scope, user_ids in scope_map.items():
                 sample_rules.append({"value": scope, "tag": user_ids})
@@ -123,46 +119,8 @@ class MyTwitter:
                     "Cannot add rules (HTTP {}): {}".format(
                         response.status_code, response.text)
                 )
-            print(json.dumps(response.json()))
+            # print(json.dumps(response.json()))
 
-
-    # Start getting tweets that contain the rules specified
-    def get_stream(headers, set, bearer_token, db): #, token:str
-        response = requests.get(
-            "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,created_at,entities,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld&expansions=author_id,geo.place_id&place.fields=contained_within,country,country_code,full_name,geo,id,name,place_type", headers=headers, stream=True,
-            # "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld", headers=headers, stream=True,
-        )
-        print(response.status_code)
-        if response.status_code != 200:
-            raise Exception(
-                "Cannot get stream (HTTP {}): {}".format(
-                    response.status_code, response.text
-                )
-            )
-            print(json.dumps(response.json()))
-
-    # Code for setting the rules needed by twitter to start the fetch
-    # def set_rules(self,headers, db: Session): #delete, bearer_token, 
-    #     # db = Depends(self.get_db())
-    #     scopes =  db.query(users.Scope).all()
-    #     # Put scopes in map to group users with same scopes
-    #     scope_map = self.get_scopes_map(scopes)
-
-    #     sample_rules = []
-    #     for scope, user_ids in scope_map.items():
-    #         sample_rules.append({"value": scope, "tag": user_ids})
-    #     payload = {"add": sample_rules}
-    #     response = requests.post(
-    #         "https://api.twitter.com/2/tweets/search/stream/rules",
-    #         headers=headers,
-    #         json=payload,
-    #     )
-    #     if response.status_code != 201:
-    #         raise Exception(
-    #             "Cannot add rules (HTTP {}): {}".format(
-    #                 response.status_code, response.text)
-    #         )
-    #     print(json.dumps(response.json()))
         
     def get_scopes_map(self,scopes):
         scope_map = {}
@@ -179,6 +137,7 @@ class MyTwitter:
 
     # Start getting tweets that contain the rules specified
     def get_stream(self,headers): #, token:str set, bearer_token, 
+        print("getting streams method")
         response = requests.get(
             "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,created_at,entities,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld&expansions=author_id,geo.place_id&place.fields=contained_within,country,country_code,full_name,geo,id,name,place_type", headers=headers, stream=True,
         )
@@ -192,42 +151,62 @@ class MyTwitter:
         for response_line in response.iter_lines():
             if response_line:
                 json_response = json.loads(response_line)
-                print(json.dumps(json_response, indent=4, sort_keys=True))
-                # data = json.dumps(json_response, indent=4, sort_keys=True)
-                # print(json_response["data"])
-                store_streams(json_response,db)
+                self.stream_queue.put(json_response)
 
-    def store_streams(self, db: Session): #, token: str, db: Session = Depends(get_db)
-        # user = get_current_user(db, token)
+    def score_sentiment(self):
+        print("score sentiment method")
+        while True:
+                post_to_score = self.sentiment_queue.get()
+                if post_to_score:
+                    print(f"Scoring {post_to_score.id}")
+                    result = SentimentApi().getSentiment(str(post_to_score.text))
+
+                    db_sentiment = users.PostSentimentScore(
+                        post_id=post_to_score.id, 
+                        sentiment=result["sentiment"], 
+                        score=result["score"]
+                    )
+                    try:
+                        with db():
+                            db.session.add(db_sentiment)
+                            db.session.commit()
+                            db.session.refresh(db_sentiment)
+                    except Exception as e:
+                        # print("NOT saved")
+                        print(e)
+                    print(f"Scored {post_to_score.id}")
+
+    def store_streams(self): #, token: str, db: Session = Depends(get_db)
         print("store streams method")
-        with db():
-            while True:
-                stream_results = self.stream_queue.get()
-                if stream_results:
-                    # check for geo location if it exists
-                    if hasattr(stream_results["includes"], "places"):
-                        geo_location = stream_results["includes"]["places"][0]["name"]
-                    else:
-                        geo_location = ''
-                    # Split user ids that are returned from twitter
-                    user_ids = stream_results['matching_rules'][0]["tag"].split(",")
-                    for user_id in user_ids: 
-                        db_stream = users.Post(
-                            user_id = user_id,
-                            source_name = "twitter",
-                            data_id = stream_results["data"]["id"],
-                            data_author_id = stream_results["data"]["author_id"],
-                            data_user_name = stream_results["includes"]["users"][0]["username"],
-                            data_user_location = geo_location,
-                            text = stream_results["data"]["text"],
-                            full_object = json.dumps(stream_results, indent=4, sort_keys=True),
-                            created_at = stream_results["data"]["created_at"]
-                        )
-                        try:
+        while True:
+            stream_results = self.stream_queue.get()
+            # print(stream_results)
+            if stream_results:
+                # check for geo location if it exists
+                if hasattr(stream_results["includes"], "places"):
+                    geo_location = stream_results["includes"]["places"][0]["name"]
+                else:
+                    geo_location = ''
+                # Split user ids that are returned from twitter
+                user_ids = stream_results['matching_rules'][0]["tag"].split(",")
+                for user_id in user_ids: 
+                    db_stream = users.Post(
+                        user_id = user_id,
+                        source_name = "twitter",
+                        data_id = stream_results["data"]["id"],
+                        data_author_id = stream_results["data"]["author_id"],
+                        data_user_name = stream_results["includes"]["users"][0]["username"],
+                        data_user_location = geo_location,
+                        text = stream_results["data"]["text"],
+                        full_object = json.dumps(stream_results, indent=4, sort_keys=True),
+                        created_at = stream_results["data"]["created_at"]
+                    )
+                    try:
+                        with db():
                             db.session.add(db_stream)
                             db.session.commit()
                             db.session.refresh(db_stream)
                             self.sentiment_queue.put(db_stream)
-                        except Exception as e:
-                            # print("NOT saved")
-                            print(e)
+                    except Exception as e:
+                        # print("NOT saved")
+                        print(e)
