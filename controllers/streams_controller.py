@@ -52,7 +52,7 @@ class MyTwitter:
         threading.Thread(target=self.score_sentiment, daemon=True).start()
 
         # create headers
-        headers = self.create_headers(os.getenv('BEARER_TOKEN_KINGSTON'))
+        headers = self.create_headers(os.getenv('BEARER_TOKEN_SHAMIR'))
         # get rules
         rules = self.get_rules(headers)
         # delete rules
@@ -121,7 +121,6 @@ class MyTwitter:
                 )
             # print(json.dumps(response.json()))
 
-        
     def get_scopes_map(self,scopes):
         scope_map = {}
         for scope_row in scopes:
