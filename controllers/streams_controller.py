@@ -1,3 +1,4 @@
+# System Imports
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 from fastapi_sqlalchemy import db 
@@ -22,13 +23,6 @@ import threading
 
 load_dotenv()
 class MyTwitter:
-    # Dependency
-    # def get_db(self):
-    #     db = SessionLocal()
-    #     try:
-    #         yield db
-    #     finally:
-    #         db.close()
 
     # Code for generating bearer token
     def generate_bearer_token(self):
@@ -49,11 +43,11 @@ class MyTwitter:
 
     def  __init__(self) -> None:
         self.stream_queue = Queue()
-        # self.sentiment_queue = Queue()
+        self.sentiment_queue = Queue()
         # self.stream_queue.put("heey")
         # self.stream_middle_man()
         # ONE THREAD FOR STORING INTO DB
-        # threading.Thread(target=self.store_streams(db), daemon=True).start()
+        threading.Thread(target=self.store_streams(db), daemon=True).start()
         # start thread for scoring sentiment
         # threading.Thread(target=self._check_for_tag_categories, daemon=True).start()
 
@@ -185,7 +179,6 @@ class MyTwitter:
 
     # Start getting tweets that contain the rules specified
     def get_stream(self,headers): #, token:str set, bearer_token, 
-        db = self.get_db()
         response = requests.get(
             "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,created_at,entities,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld&expansions=author_id,geo.place_id&place.fields=contained_within,country,country_code,full_name,geo,id,name,place_type", headers=headers, stream=True,
         )
@@ -207,35 +200,34 @@ class MyTwitter:
     def store_streams(self, db: Session): #, token: str, db: Session = Depends(get_db)
         # user = get_current_user(db, token)
         print("store streams method")
-        db = self.get_db()
-        while True:
-            stream_results = self.stream_queue.get()
-            if stream_results:
-                # check for geo location if it exists
-                if hasattr(stream_results["includes"], "places"):
-                    geo_location = stream_results["includes"]["places"][0]["name"]
-                else:
-                    geo_location = ''
-
-                # Split user ids that are returned from twitter
-                user_ids = stream_results['matching_rules'][0]["tag"].split(",")
-                for user_id in user_ids: 
-                    db_stream = users.Post(
-                        user_id = user_id,
-                        source_name = "twitter",
-                        data_id = stream_results["data"]["id"],
-                        data_author_id = stream_results["data"]["author_id"],
-                        data_user_name = stream_results["includes"]["users"][0]["username"],
-                        data_user_location = geo_location,
-                        text = stream_results["data"]["text"],
-                        full_object = json.dumps(stream_results, indent=4, sort_keys=True),
-                        created_at = stream_results["data"]["created_at"]
-                    )
-                    try:
-                        db.add(db_stream)
-                        db.commit()
-                        db.refresh(db_stream)
-                        self.sentiment_queue.put(db_stream)
-                    except Exception as e:
-                        # print("NOT saved")
-                        print(e)
+        with db():
+            while True:
+                stream_results = self.stream_queue.get()
+                if stream_results:
+                    # check for geo location if it exists
+                    if hasattr(stream_results["includes"], "places"):
+                        geo_location = stream_results["includes"]["places"][0]["name"]
+                    else:
+                        geo_location = ''
+                    # Split user ids that are returned from twitter
+                    user_ids = stream_results['matching_rules'][0]["tag"].split(",")
+                    for user_id in user_ids: 
+                        db_stream = users.Post(
+                            user_id = user_id,
+                            source_name = "twitter",
+                            data_id = stream_results["data"]["id"],
+                            data_author_id = stream_results["data"]["author_id"],
+                            data_user_name = stream_results["includes"]["users"][0]["username"],
+                            data_user_location = geo_location,
+                            text = stream_results["data"]["text"],
+                            full_object = json.dumps(stream_results, indent=4, sort_keys=True),
+                            created_at = stream_results["data"]["created_at"]
+                        )
+                        try:
+                            db.session.add(db_stream)
+                            db.session.commit()
+                            db.session.refresh(db_stream)
+                            self.sentiment_queue.put(db_stream)
+                        except Exception as e:
+                            # print("NOT saved")
+                            print(e)

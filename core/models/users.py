@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, TIMESTAMP
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, TIMESTAMP
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -88,5 +88,16 @@ class Post(Base):
     full_object = Column(String, index=True)
     created_at = Column(TIMESTAMP, index=True)
 
-
     post_getter = relationship("User", back_populates="posts")
+    sentiment_scores = relationship("PostSentimentScore", back_populates="sentiment_post")
+
+
+class PostSentimentScore(Base):
+    __tablename__ = "post_sentiment_scores"
+
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer,  ForeignKey('posts.id'))
+    sentiment = Column(String, index=True)
+    score = Column(Float, index=True)
+
+    sentiment_post = relationship("Post", back_populates="sentiment_scores")

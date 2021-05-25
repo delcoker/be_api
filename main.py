@@ -1,51 +1,50 @@
+# System Imports
 from typing import List
 from fastapi import Depends, FastAPI, HTTPException, status, Form
 from sqlalchemy.orm import Session
 
-from controllers import crud, streams_controller
-from core.models import users
-from routers import auth_routes, group_category_routes, category_routes, scope_routes, user_routes
-from core.models.database import SessionLocal, engine
+# Custom Imports
 # Import JWT and authentication dependencies needed
 from jose import JWTError, jwt  # Encoding and decoding jwt
-
-
-# Import os and dotenv to read data from env file
-import os
-
 from authlib.integrations.starlette_client import OAuth
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
-
-# Using OAuth1Session
-from requests_oauthlib import OAuth1Session
-
-# Using OAuth1 auth helper
-import requests
-from requests_oauthlib import OAuth1
-
-from urllib.parse import urlencode, urljoin, parse_qs
-
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi_sqlalchemy import DBSessionMiddleware  # middleware helper
-from core.schemas.user_schemas import Url
-import base64
-from dependency.dependencies import get_user_token
-from controllers.streams_controller import MyTwitter
-# from fastapi.security import OAuth2PasswordBearer
 # Import os and dotenv to read data from env file
 import os
 from dotenv import load_dotenv
 
-authenticate_url = 'https://api.twitter.com/oauth/authenticate'
-authorize_url = 'https://api.twitter.com/oauth/authorize'
-request_token_url = 'https://api.twitter.com/oauth/request_token'
-access_token_url = 'https://api.twitter.com/oauth/access_token'
+# Using OAuth1Session
+from requests_oauthlib import OAuth1Session, OAuth1
+# Using OAuth1 auth helper
+import requests
+from urllib.parse import urlencode, urljoin, parse_qs
+from core.schemas.user_schemas import Url
+import base64
+# from fastapi.security import OAuth2PasswordBearer
 
-users.Base.metadata.create_all(bind=engine)
+# Controllers
+from controllers import crud, streams_controller
+from controllers.streams_controller import MyTwitter
+
+# Models
+from core.models import users
+
+# Routes
+from routers import auth_routes, group_category_routes, category_routes, scope_routes, user_routes
+
+# Database
+from core.models.database import SessionLocal, engine
+
+# Dependency
+from dependency.dependencies import get_user_token
+
+# Middleware
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi_sqlalchemy import DBSessionMiddleware  # middleware helper
 
 # Creating a fastapi instance
 app = FastAPI()
+
 load_dotenv()
 # Created a session middleware  
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY'))
@@ -74,13 +73,7 @@ def get_db():
     finally:
         db.close()
 
-
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
-
-# async def get_current_active_user(current_user: User = Depends(get_current_user)):
-#     if current_user.disabled:
-#         raise HTTPException(status_code=400, detail="Inactive user")
-#     return current_user
+users.Base.metadata.create_all(bind=engine)
 
 app.include_router(auth_routes.router)
 app.include_router(group_category_routes.router)
@@ -90,43 +83,7 @@ app.include_router(user_routes.router)
 
 @app.on_event("startup")
 async def start_stream(db: Session = Depends(get_db)):
-    MyTwitter()
-#     self.stream_queue = Queue()
-
-
-@app.get('/login/twitter')
-async def login_via_twitter(request: Request):
-    oauth = OAuth1Session(os.getenv('TWITTER_CLIENT_ID'), client_secret=os.getenv('TWITTER_CLIENT_SECRET'))
-    fetch_response = oauth.fetch_request_token(request_token_url)
-    return Url(url=authorize_url + '?oauth_token=' + fetch_response.get(
-        'oauth_token') + '&oauth_token_secret=' + fetch_response.get('oauth_token_secret'))
-
-@app.post('/auth/twitter')
-# Receive request and token from fe and start a db session 
-async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...),
-                           oauth_verifier: str = Form(...),
-                           db: Session = Depends(get_db)):
-    # Fetch token and verifier and pass to oauth function
-    oauth = OAuth1Session(os.getenv('TWITTER_CLIENT_ID'),
-                          client_secret=os.getenv('TWITTER_CLIENT_SECRET'),
-                          resource_owner_key=oauth_token,
-                          verifier=oauth_verifier)
-    # get access tokens
-    oauth_tokens = oauth.fetch_access_token(access_token_url)
-    # account name
-    account = "twitter"
-    # Send details to the function that stores the information of the user and their social media details
-    db_social_account = crud.store_user_social_account(db, oauth_tokens.get('oauth_token'),
-                                                       oauth_tokens.get('oauth_token_secret'), token, account)
-    # Return response/data after the function stores the details
-    return db_social_account
-
-# @app.get("/users/group/category/{user_id}", response_model=user_schemas.User_Group_Categories)
-# def read_user(user_id: int, db: Session = Depends(get_db)):
-#     db_user = crud.create_group_category(db, user_id=user_id)
-#     if db_user is None:
-#         raise HTTPException(status_code=404, detail="User not found")
-#     return db_user
+    # MyTwitter()
 
 # @app.get("/stream") # , dependencies=[Depends(get_user_token)]
 # def main(req: Request, db: Session = Depends(get_db)):
