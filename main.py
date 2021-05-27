@@ -11,6 +11,11 @@ from routers import auth_routes, group_category_routes, category_routes, scope_r
 # Middleware
 from fastapi.middleware.cors import CORSMiddleware
 
+# Asyncio
+# import asyncio
+# from hypercorn.config import Config
+# from hypercorn.asyncio import serve
+
 # Necessary to get details from env
 load_dotenv()
 
