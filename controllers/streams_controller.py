@@ -52,7 +52,7 @@ class MyTwitter:
         threading.Thread(target=self.score_sentiment, daemon=True).start()
 
         # create headers
-        headers = self.create_headers(os.getenv('BEARER_TOKEN_SHAMIR'))
+        headers = self.create_headers(os.getenv('BEARER_TOKEN_KINGSTON'))
         # get rules
         rules = self.get_rules(headers)
         # delete rules
@@ -77,7 +77,7 @@ class MyTwitter:
             raise Exception(
                 "Cannot get rules (HTTP {}): {}".format(response.status_code, response.text)
             )
-        # print(json.dumps(response.json()))
+        print(json.dumps(response.json()))
         return response.json()
 
     def delete_all_rules(self, headers, rules):
@@ -97,7 +97,7 @@ class MyTwitter:
                     response.status_code, response.text
                 )
             )
-        # print(json.dumps(response.json()))
+        print(json.dumps(response.json()))
 
     # Code for setting the rules needed by twitter to start the fetch
     def set_rules(self, headers):
@@ -119,7 +119,7 @@ class MyTwitter:
                     "Cannot add rules (HTTP {}): {}".format(
                         response.status_code, response.text)
                 )
-            # print(json.dumps(response.json()))
+            print(json.dumps(response.json()))
 
     def get_scopes_map(self,scopes):
         scope_map = {}
@@ -140,7 +140,7 @@ class MyTwitter:
         response = requests.get(
             "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,created_at,entities,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld&expansions=author_id,geo.place_id&place.fields=contained_within,country,country_code,full_name,geo,id,name,place_type", headers=headers, stream=True,
         )
-        print(response.status_code)
+        # print(response.status_code)
         if response.status_code != 200:
             raise Exception(
                 "Cannot get stream (HTTP {}): {}".format(

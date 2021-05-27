@@ -28,7 +28,7 @@ class SentimentApi:
 
         result = {"score": score, "sentiment": sentiment}
 
-        print("{:-<65} {}".format(text, result))
+        # print("{:-<65} {}".format(text, result))
         return result
 
     def test(self):
