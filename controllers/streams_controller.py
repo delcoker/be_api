@@ -173,7 +173,7 @@ class MyTwitter:
         while True:
             post_to_score = self.sentiment_queue.get()
             if post_to_score:
-                print(f"Scoring {post_to_score.id}")
+                # print(f"Scoring {post_to_score.id}")
                 result = SentimentApi().getSentiment(str(post_to_score.text))
 
                 db_sentiment = users.PostSentimentScore(
@@ -189,7 +189,7 @@ class MyTwitter:
                 except Exception as e:
                     # print("NOT saved")
                     print(e)
-                print(f"Scored {post_to_score.id}")
+                # print(f"Scored {post_to_score.id}")
 
     def store_streams(self):  # , token: str, db: Session = Depends(get_db)
         print("store streams method")
