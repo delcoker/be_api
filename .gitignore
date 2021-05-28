@@ -2,3 +2,4 @@
 user-management.rar
 .idea
 venv
+*.pyc
