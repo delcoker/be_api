@@ -142,7 +142,7 @@ class MyTwitter:
     # Start getting tweets that contain the rules specified
     def get_stream(self, headers):  # , token:str set, bearer_token,
         print("getting streams method")
-        count = 120
+        count = 1
         while True:
             response = requests.get(
                 "https://api.twitter.com/2/tweets/search/stream?tweet.fields=attachments,author_id,created_at,entities,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld&expansions=author_id,geo.place_id&place.fields=contained_within,country,country_code,full_name,geo,id,name,place_type",
@@ -153,12 +153,12 @@ class MyTwitter:
                     if response_line:
                         json_response = json.loads(response_line)
                         self.stream_queue.put(json_response)
-                        count = 120
+                        count = 1
             except Exception as r:
                 # if response.status_code == 429:
                 print(' Put to sleep before retrying.')
-                time.sleep(count)
-                count *= count
+                time.sleep(180*count)
+                count += 1
                 # print(r)
                 print("Printed after"+str(count)+" seconds.")
                 # print("Printed after 5 seconds.")

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="9fe7a161-ee02-4238-a2c5-bc98d485e579" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/controllers/crud.py" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/crud.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/core/models/users.py" beforeDir="false" afterPath="$PROJECT_DIR$/core/models/users.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    <list default="true" id="4269a22c-34e8-4e62-b5b5-7caf120d15f8" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/streams_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/streams_controller.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
