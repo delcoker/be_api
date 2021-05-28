@@ -80,7 +80,7 @@ class MyTwitter:
             raise Exception(
                 "Cannot get rules (HTTP {}): {}".format(response.status_code, response.text)
             )
-        print(json.dumps(response.json()))
+        # print(json.dumps(response.json()))
         return response.json()
 
     def delete_all_rules(self, headers, rules):
@@ -100,7 +100,7 @@ class MyTwitter:
                     response.status_code, response.text
                 )
             )
-        print(json.dumps(response.json()))
+        # print(json.dumps(response.json()))
 
     # Code for setting the rules needed by twitter to start the fetch
     def set_rules(self, headers):
@@ -122,7 +122,7 @@ class MyTwitter:
                     "Cannot add rules (HTTP {}): {}".format(
                         response.status_code, response.text)
                 )
-            print(json.dumps(response.json()))
+            # print(json.dumps(response.json()))
 
     def get_scopes_map(self, scopes):
         scope_map = {}
@@ -141,7 +141,7 @@ class MyTwitter:
 
     # Start getting tweets that contain the rules specified
     def get_stream(self, headers):  # , token:str set, bearer_token,
-        print("getting streams method")
+        # print("getting streams method")
         count = 120
         while True:
             response = requests.get(
@@ -155,21 +155,21 @@ class MyTwitter:
                         self.stream_queue.put(json_response)
                         count = 120
             except Exception:
-                if response.status_code == 429:
-                    time.sleep(count)
-                    count *= count
-                else:
-                    print(' Put to sleep before retrying.')
-                    time.sleep(5)
-                    print("Printed after 5 seconds.")
+                # if response.status_code == 429:
+                time.sleep(count)
+                count *= count
+                # else:
+                #     print(' Put to sleep before retrying.')
+                #     time.sleep(5)
+                #     print("Printed after 5 seconds.")
                 continue
 
     def score_sentiment(self):
-        print("score sentiment method")
+        # print("score sentiment method")
         while True:
             post_to_score = self.sentiment_queue.get()
             if post_to_score:
-                print(f"Scoring {post_to_score.id}")
+                # print(f"Scoring {post_to_score.id}")
                 result = SentimentApi().getSentiment(str(post_to_score.text))
 
                 db_sentiment = users.PostSentimentScore(
@@ -185,10 +185,10 @@ class MyTwitter:
                 except Exception as e:
                     # print("NOT saved")
                     print(e)
-                print(f"Scored {post_to_score.id}")
+                # print(f"Scored {post_to_score.id}")
 
     def store_streams(self):  # , token: str, db: Session = Depends(get_db)
-        print("store streams method")
+        # print("store streams method")
         while True:
             stream_results = self.stream_queue.get()
             # print(stream_results)
