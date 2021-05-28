@@ -47,3 +47,32 @@ app.include_router(group_category_routes.router)
 app.include_router(category_routes.router)
 app.include_router(scope_routes.router)
 app.include_router(user_routes.router)
+
+# @app.get('/login/twitter')
+# async def login_via_twitter(request: Request):
+#     oauth = OAuth1Session(os.getenv('TWITTER_CLIENT_ID'), client_secret=os.getenv('TWITTER_CLIENT_SECRET'))
+#     fetch_response = oauth.fetch_request_token(request_token_url)
+#     return Url(url=authorize_url + '?oauth_token=' + fetch_response.get(
+#         'oauth_token') + '&oauth_token_secret=' + fetch_response.get('oauth_token_secret'))
+#
+#
+# @app.post('/auth/twitter')
+# # Receive request and token from fe and start a db session
+# async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...),
+#                            oauth_verifier: str = Form(...),
+#                            db: Session = Depends(get_db)):
+#     oauth = OAuth1Session(os.getenv('TWITTER_CLIENT_ID'), client_secret=os.getenv('TWITTER_CLIENT_SECRET'))
+#     fetch_response = oauth.fetch_request_token(request_token_url)
+#
+#     oauth = OAuth1Session(os.getenv('TWITTER_CLIENT_ID'),
+#                                client_secret=os.getenv('TWITTER_CLIENT_SECRET'),
+#                                resource_owner_key=oauth_token,
+#                                verifier=oauth_verifier)
+#     oauth_tokens = oauth.fetch_access_token(access_token_url)
+#     print(oauth_tokens)
+#     # account name
+#     account = "twitter"
+#     # Send details to the function that stores the information of the user and their social media details
+#     db_social_account = crud.store_user_social_account(db, oauth_tokens.get('oauth_token'),oauth_tokens.get('oauth_token_secret'), token, account)
+#     # Return response/data after the function stores the details
+#     return db_social_account
