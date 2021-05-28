@@ -2,4 +2,9 @@
 user-management.rar
 .idea
 venv
+.vscode/settings.json
+*.pyc
+*.pyc
+*.pyc
+*.pyc
 *.pyc
