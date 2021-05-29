@@ -1,7 +1,10 @@
+# Byte-compiled / optimized / DLL files
+__pycache__
 .env
 user-management.rar
 .idea
 venv
 .vscode/settings.json
-*.pyc
-
+**.pyc
+**/.idea/workspace.xml 
+**/.idea/tasks.xml
