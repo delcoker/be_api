@@ -27,7 +27,7 @@ origins = [
 # "https://localhost.tiangolo.com",
 # "http://localhost",
 # "http://localhost:8080",
-"*"
+"https://dwm-social-media-frontend.herokuapp.com"
 ]
 
 app.add_middleware(
