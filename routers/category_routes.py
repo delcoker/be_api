@@ -24,7 +24,7 @@ async def get_db():
         db.close()
 
 # Route to get all categories
-@router.get("/", response_model=List[categories.Category])
+@router.get("", response_model=List[categories.Category])
 def get_all_categories(req: Request, db: Session = Depends(get_db)):
     categories = category_controller.get_all_categories(db, req.headers['token'])
     return categories

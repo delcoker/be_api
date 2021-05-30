@@ -5,7 +5,7 @@ from core.schemas import user_schemas
 from core.schemas import group_categories
 from core.models.database import SessionLocal, engine
 
-# Import OAuth2 
+# Import OAuth2
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import Depends, HTTPException, status
 # Import JWT and authentication dependencies needed
@@ -70,7 +70,7 @@ def create_user(db: Session, first_name: str, last_name: str, email: str, phone:
     db.refresh(db_user)
     db_group_category = users.GroupCategory(
         user_id = db_user.id,
-        group_category_name = "Topic"
+        group_category_name = "Topics"
     )
     db.add(db_group_category)
     db.commit()

@@ -22,7 +22,7 @@ async def get_db():
         db.close()
 
 # Route to store group categories
-@router.post("/group/category/create/", response_model=group_categories.GroupCategoryList)
+@router.post("/group/category/create", response_model=group_categories.GroupCategoryList)
 def group_category_create(req: Request, group_category_name: str = Form(...), db: Session = Depends(get_db)):
     db_group_category = crud.create_group_category(
         db, group_category_name, req.headers['token'])
@@ -31,7 +31,7 @@ def group_category_create(req: Request, group_category_name: str = Form(...), db
     return db_group_category
 
 # Route to get group categories
-@router.get("/group/categories/", response_model=List[group_categories.GroupCategoryList])
+@router.get("/group/categories", response_model=List[group_categories.GroupCategoryList])
 def get_group_categories(req: Request, db: Session = Depends(get_db)):
     group_categories = crud.get_group_categories(db, req.headers['token'])
     return group_categories
