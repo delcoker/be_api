@@ -12,9 +12,9 @@ from routers import auth_routes, group_category_routes, category_routes, scope_r
 from fastapi.middleware.cors import CORSMiddleware
 
 # Asyncio
-# import asyncio
-# from hypercorn.config import Config
-# from hypercorn.asyncio import serve
+import asyncio
+from hypercorn.config import Config
+from hypercorn.asyncio import serve
 
 # Necessary to get details from env
 load_dotenv()
@@ -38,9 +38,10 @@ allow_methods=["*"],
 allow_headers=["*"],
 )
 
-# config = Config()
-# config.bind = ["127.0.0.1:8000"] 
-# asyncio.run(serve(app, config))
+config = Config()
+port = int(os.environ.get("PORT", 8000))
+config.bind = [f'0.0.0.0:{port}']
+asyncio.run(serve(app, config))
 
 app.include_router(auth_routes.router)
 app.include_router(group_category_routes.router)

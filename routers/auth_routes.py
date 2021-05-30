@@ -24,6 +24,10 @@ async def get_db():
     finally:
         db.close()
 
+@router.post("/test")
+def test():
+    return "OK"
+
 # Create user
 @router.post("/register", response_model=user_schemas.User)
 def create_user(first_name: str = Form(...), last_name: str = Form(...), email: str = Form(...), phone: str = Form(...), password: str = Form(...),  db: Session = Depends(get_db)):
