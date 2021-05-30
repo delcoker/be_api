@@ -31,7 +31,7 @@ def group_category_create(req: Request, group_category_name: str = Form(...), db
     return db_group_category
 
 # Route to get group categories
-@router.get("/group/categories/", response_model=List[group_categories.GroupCategoryList])
+@router.get("/group/categories", response_model=List[group_categories.GroupCategoryList])
 def get_group_categories(req: Request, db: Session = Depends(get_db)):
     group_categories = crud.get_group_categories(db, req.headers['token'])
     return group_categories
