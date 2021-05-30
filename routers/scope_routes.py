@@ -34,7 +34,7 @@ def scope_create(req: Request, scope: str = Form(...), db: Session = Depends(get
     return db_scope
 
 # Route to get scopes
-@router.get("/", response_model=List[scopes.Scope])
+@router.get("", response_model=List[scopes.Scope])
 def get_scopes(req: Request, db: Session = Depends(get_db)):
     scopes = scopes_controller.get_scopes(db, req.headers['token'])
     return scopes

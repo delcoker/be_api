@@ -27,14 +27,14 @@ async def get_db():
         db.close()
 
 # Fetch all users
-@router.get("/", response_model=List[user_schemas.User])
+@router.get("", response_model=List[user_schemas.User])
 # def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 def get_users(db: Session = Depends(get_db)):
     users = crud.get_users(db)  # skip=skip, limit=limit
     return users
 
 # Return current user data
-@router.post("/user/me/", response_model=user_schemas.User)
+@router.post("/user/me", response_model=user_schemas.User)
 def read_users_me(req: Request, db: Session = Depends(get_db)):
     current_user: users.User = crud.get_current_user(db, req.headers['token'])
     return current_user
