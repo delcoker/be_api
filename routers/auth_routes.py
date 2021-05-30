@@ -24,7 +24,7 @@ async def get_db():
     finally:
         db.close()
 
-@router.post("/test")
+@router.get("/test")
 def test():
     return "OK"
 
