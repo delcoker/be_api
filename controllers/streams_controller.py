@@ -56,7 +56,7 @@ class MyTwitter:
         threading.Thread(target=self.score_sentiment, daemon=True).start()
 
         # create headers
-        headers = self.create_headers(os.getenv('BEARER_TOKEN_SHAMIR'))
+        headers = self.create_headers(os.getenv('TWITTER_BEARER_TOKEN'))
         # get rules
         rules = self.get_rules(headers)
         # delete rules
