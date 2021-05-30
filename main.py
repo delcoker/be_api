@@ -46,7 +46,7 @@ app.include_router(user_routes.router)
 
 config = Config()
 port = int(os.environ.get("PORT", 8000))
-config.bind = [f'127.0.0.1:{port}'] # specify port and url
+config.bind = [f'0.0.0.0:{port}'] # specify port and url
 asyncio.run(serve(app, config))
 # @app.get('/login/twitter')
 # async def login_via_twitter(request: Request):
