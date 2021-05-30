@@ -38,7 +38,6 @@ allow_methods=["*"],
 allow_headers=["*"],
 )
 
-
 app.include_router(auth_routes.router)
 app.include_router(group_category_routes.router)
 app.include_router(category_routes.router)
@@ -77,3 +76,8 @@ asyncio.run(serve(app, config))
 #     db_social_account = crud.store_user_social_account(db, oauth_tokens.get('oauth_token'),oauth_tokens.get('oauth_token_secret'), token, account)
 #     # Return response/data after the function stores the details
 #     return db_social_account
+
+config = Config()
+port = int(os.environ.get("PORT", 8000))
+config.bind = [f'0.0.0.0:{port}']
+asyncio.run(serve(app, config))
