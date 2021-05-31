@@ -3,8 +3,10 @@ __pycache__
 .env
 user-management.rar
 .idea
+/.idea/
 venv
 .vscode/settings.json
 **.pyc
-**/.idea/workspace.xml 
+**/.idea/workspace.xml
 **/.idea/tasks.xml
+/.vscode/
