@@ -18,9 +18,9 @@ def get_db():
         db.close()
 
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 ALGORITHM = "HS256"
-# Connection fetch token and verify 
+# Connection fetch token and verify
 def get_user_token(db: Session=Depends(get_db), token: str = Header(...)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
