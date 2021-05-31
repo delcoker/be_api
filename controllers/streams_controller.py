@@ -157,10 +157,10 @@ class MyTwitter:
             except Exception as r:
                 # if response.status_code == 429:
                 print(' Put to sleep before retrying.')
-                time.sleep(180*count)
+                time.sleep(180 * count)
                 count += 1
                 # print(r)
-                print("Printed after"+str(count)+" seconds.")
+                print("Printed after" + str(count) + " seconds.")
                 # print("Printed after 5 seconds.")
                 continue
                 # else:
@@ -198,7 +198,7 @@ class MyTwitter:
             # print(stream_results)
             if stream_results:
                 # check for geo location if it exists
-                if hasattr(stream_results["includes"], "places"):
+                if hasattr(stream_results, 'includes') and hasattr(stream_results["includes"], "places"):
                     geo_location = stream_results["includes"]["places"][0]["name"]
                 else:
                     geo_location = ''
@@ -216,12 +216,12 @@ class MyTwitter:
                         full_object=json.dumps(stream_results, indent=4, sort_keys=True),
                         created_at=stream_results["data"]["created_at"]
                     )
-                    try:
-                        with db():
-                            db.session.add(db_stream)
-                            db.session.commit()
-                            db.session.refresh(db_stream)
-                            self.sentiment_queue.put(db_stream)
-                    except Exception as e:
-                        # print("NOT saved")
-                        print(e)
+                try:
+                    with db():
+                        db.session.add(db_stream)
+                        db.session.commit()
+                        db.session.refresh(db_stream)
+                        self.sentiment_queue.put(db_stream)
+                except Exception as e:
+                    # print("NOT saved")
+                    print(e)
