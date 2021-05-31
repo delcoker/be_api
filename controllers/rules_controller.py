@@ -12,7 +12,7 @@ from core.models import users
 
 class Rules:
     def __init__(self) -> None:
-        print("welcome")
+        print("rules controller initialised")
     # Code for creating headers to connect to twitter for the streams
     def create_headers(self, bearer_token):
         headers = {"Authorization": "Bearer {}".format(bearer_token)}

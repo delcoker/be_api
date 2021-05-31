@@ -3,9 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="4269a22c-34e8-4e62-b5b5-7caf120d15f8" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/controllers/scopes_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/scopes_controller.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/crud.py" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/crud.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/controllers/streams_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/streams_controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/twitter_streaming.py" beforeDir="false" afterPath="$PROJECT_DIR$/twitter_streaming.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -102,7 +101,7 @@
       <workItem from="1616923237663" duration="24565000" />
       <workItem from="1616952502583" duration="2822000" />
       <workItem from="1619617637281" duration="638000" />
-      <workItem from="1622490467309" duration="4733000" />
+      <workItem from="1622490467309" duration="8210000" />
     </task>
     <servers />
   </component>

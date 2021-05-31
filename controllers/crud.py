@@ -33,7 +33,7 @@ def get_db():
 
 # to get a string like this run:
 # openssl rand -hex 32
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('JWT_SECRET_KEY')
 ALGORITHM = "HS256"
 
 # Hash password coming from user
@@ -92,7 +92,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=os.getenv('JWT_EXPIRATION_TIME'))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
