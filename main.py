@@ -16,6 +16,9 @@ import asyncio
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
 
+from fastapi_sqlalchemy import DBSessionMiddleware  # middleware helper
+from starlette.middleware.sessions import SessionMiddleware
+
 # Necessary to get details from env
 load_dotenv()
 
@@ -38,6 +41,9 @@ allow_credentials=True,
 allow_methods=["*"],
 allow_headers=["*"],
 )
+
+app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY'))
+app.add_middleware(DBSessionMiddleware, db_url=os.getenv('MYSQLURLPATH'))
 
 app.include_router(auth_routes.router)
 app.include_router(group_category_routes.router)

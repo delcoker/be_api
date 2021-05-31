@@ -14,4 +14,5 @@ app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY'))
 app.add_middleware(DBSessionMiddleware, db_url=os.getenv('MYSQLURLPATH'))
 
-MyTwitter()
+twitter_streamer = MyTwitter()
+# twitter_streamer.worker()

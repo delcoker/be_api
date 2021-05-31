@@ -3,6 +3,10 @@
   <component name="ChangeListManager">
     <list default="true" id="4269a22c-34e8-4e62-b5b5-7caf120d15f8" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/scopes_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/scopes_controller.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/streams_controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/streams_controller.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/twitter_streaming.py" beforeDir="false" afterPath="$PROJECT_DIR$/twitter_streaming.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,6 +34,7 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="codeWithMe.voiceChat.enabledByDefault" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
@@ -72,7 +77,7 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="9fe7a161-ee02-4238-a2c5-bc98d485e579" name="Default Changelist" comment="" />
+      <changelist id="4269a22c-34e8-4e62-b5b5-7caf120d15f8" name="Default Changelist" comment="" />
       <created>1615114078321</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -97,6 +102,7 @@
       <workItem from="1616923237663" duration="24565000" />
       <workItem from="1616952502583" duration="2822000" />
       <workItem from="1619617637281" duration="638000" />
+      <workItem from="1622490467309" duration="4733000" />
     </task>
     <servers />
   </component>

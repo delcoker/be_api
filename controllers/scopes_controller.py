@@ -2,11 +2,14 @@
 from sqlalchemy.orm import Session
 
 # Custom
+from controllers import rules_controller
 from core.models.database import SessionLocal, engine
 # from core.schemas import categories
 from core.models import users
 from controllers.crud import get_current_user
 
+# from rules_controller import Rules
+test = rules_controller.Rules()
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -27,6 +30,7 @@ def create_scope(db: Session, scope: str, token: str):
     db.add(db_scope)
     db.commit()
     db.refresh(db_scope)
+    test.set_rules()
     return db_scope
 
 # Get all Group Categories
@@ -45,6 +49,7 @@ def update_scope(db: Session, scope_id: int, scope: str):
         "scope": scope
     })
     db.commit()
+    test.set_rules()
     return result
 
 # Delete a scope
@@ -52,4 +57,5 @@ def delete_scope(db: Session, scope_id: int):
     # get_current_user(db, token)
     result = db.query(users.Scope).filter(users.Scope.id == scope_id).delete()
     db.commit()
+    test.set_rules()
     return result

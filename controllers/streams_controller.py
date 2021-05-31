@@ -58,13 +58,14 @@ class MyTwitter:
         # create headers
         headers = self.create_headers(os.getenv('TWITTER_BEARER_TOKEN'))
         # get rules
-        rules = self.get_rules(headers)
+        # rules = self.get_rules(headers)
         # delete rules
-        self.delete_all_rules(headers, rules)
+        # self.delete_all_rules(headers, rules)
         # set rules
-        self.set_rules(headers)
+        # self.set_rules()
         # start stream
         self.get_stream(headers)
+
 
     # Code for creating headers to connect to twitter for the streams
     def create_headers(self, bearer_token):
@@ -103,7 +104,12 @@ class MyTwitter:
         print(json.dumps(response.json()))
 
     # Code for setting the rules needed by twitter to start the fetch
-    def set_rules(self, headers):
+    def set_rules(self):
+        headers = self.create_headers(os.getenv('TWITTER_BEARER_TOKEN'))
+        # get rules
+        rules = self.get_rules(headers)
+        # delete rules
+        self.delete_all_rules(headers, rules)
         with db():
             scopes = db.session.query(users.Scope).all()
             # Put scopes in map to group users with same scopes
