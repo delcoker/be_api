@@ -42,7 +42,7 @@ allow_methods=["*"],
 allow_headers=["*"],
 )
 
-app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY'))
+app.add_middleware(SessionMiddleware, secret_key=os.getenv('JWT_SECRET_KEY'))
 app.add_middleware(DBSessionMiddleware, db_url=os.getenv('MYSQLURLPATH'))
 
 app.include_router(auth_routes.router)
