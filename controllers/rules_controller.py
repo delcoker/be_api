@@ -10,14 +10,15 @@ from dotenv import load_dotenv
 # custom
 from core.models import users
 
+
 class Rules:
     def __init__(self) -> None:
         print("rules controller initialised")
+
     # Code for creating headers to connect to twitter for the streams
     def create_headers(self, bearer_token):
         headers = {"Authorization": "Bearer {}".format(bearer_token)}
         return headers
-
 
     # Get the rules that are stored by twitter for user account
     def get_rules(self, headers):
@@ -30,7 +31,6 @@ class Rules:
             )
         print(json.dumps(response.json()))
         return response.json()
-
 
     def delete_all_rules(self, headers, rules):
         if rules is None or "data" not in rules:
@@ -50,7 +50,6 @@ class Rules:
                 )
             )
         print(json.dumps(response.json()))
-
 
     # Code for setting the rules needed by twitter to start the fetch
     def set_rules(self):
