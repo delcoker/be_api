@@ -61,7 +61,7 @@ class MyTwitter(Rules):
             while True:
                 # ping(be_url, verbose=True, timeout=2000)
                 print("pinging BE")
-                requests.get(be_url, stream=True)
+                requests.get(be_url)
                 time.sleep(time_count)
         except socket.error as e:
             print("Ping Error:", e)
