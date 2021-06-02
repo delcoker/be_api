@@ -129,11 +129,16 @@ class MyTwitter(Rules):
             # print(stream_results)
             if stream_results:
                 # check for geo location if it exists
-                if hasattr(stream_results, 'includes') and hasattr(stream_results["includes"], "places"):
-                    geo_location = stream_results["includes"]["places"][0]["name"]
-                else:
-                    geo_location = ''
+                geo_location = ''
+                try:
+                    if hasattr(stream_results["includes"], "places"):
+                        geo_location = stream_results["includes"]["places"][0]["name"]
+                        print("has geo:", geo_location)
+                except Exception as e:
+                    continue
+
                 # Split user ids that are returned from twitter
+                # if hasattr(stream_results, 'matching_rules'):
                 user_ids = stream_results['matching_rules'][0]["tag"].split(",")
                 for user_id in user_ids:
                     db_stream = users.Post(

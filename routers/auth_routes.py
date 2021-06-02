@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, status, Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import datetime, timedelta
@@ -9,7 +11,7 @@ from controllers import crud
 from core.schemas import user_schemas
 
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('JWT_EXPIRATION_TIME'))
 
 router = APIRouter(
     prefix="/auth",
