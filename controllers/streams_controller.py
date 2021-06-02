@@ -56,14 +56,12 @@ class MyTwitter(Rules):
 
     def ping_backend(self):
         be_url = "https://dwm-social-media-backend.herokuapp.com"
-        time_count = 60
+        time_count = 60 * 25
         try:
             while True:
                 # ping(be_url, verbose=True, timeout=2000)
-                requests.get(be_url, stream=True)
-
                 print("pinging BE")
-
+                requests.get(be_url, stream=True)
                 time.sleep(time_count)
         except socket.error as e:
             print("Ping Error:", e)
