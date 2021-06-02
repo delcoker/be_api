@@ -134,26 +134,26 @@ class MyTwitter(Rules):
                 else:
                     geo_location = ''
                 # Split user ids that are returned from twitter
-                if hasattr(stream_results, 'matching_rules'):
-                    user_ids = stream_results['matching_rules'][0]["tag"].split(",")
-                    for user_id in user_ids:
-                        db_stream = users.Post(
-                            user_id=user_id,
-                            source_name="twitter",
-                            data_id=stream_results["data"]["id"],
-                            data_author_id=stream_results["data"]["author_id"],
-                            data_user_name=stream_results["includes"]["users"][0]["username"],
-                            data_user_location=geo_location,
-                            text=stream_results["data"]["text"],
-                            full_object=json.dumps(stream_results, indent=4, sort_keys=True),
-                            created_at=stream_results["data"]["created_at"]
-                        )
-                        try:
-                            with db():
-                                db.session.add(db_stream)
-                                db.session.commit()
-                                db.session.refresh(db_stream)
-                                self.sentiment_queue.put(db_stream)
-                        except Exception as e:
-                            # print("NOT saved")
-                            print(e)
+                # if stream_results['matching_rules']:
+                user_ids = stream_results['matching_rules'][0]["tag"].split(",")
+                for user_id in user_ids:
+                    db_stream = users.Post(
+                        user_id=user_id,
+                        source_name="twitter",
+                        data_id=stream_results["data"]["id"],
+                        data_author_id=stream_results["data"]["author_id"],
+                        data_user_name=stream_results["includes"]["users"][0]["username"],
+                        data_user_location=geo_location,
+                        text=stream_results["data"]["text"],
+                        full_object=json.dumps(stream_results, indent=4, sort_keys=True),
+                        created_at=stream_results["data"]["created_at"]
+                    )
+                    try:
+                        with db():
+                            db.session.add(db_stream)
+                            db.session.commit()
+                            db.session.refresh(db_stream)
+                            self.sentiment_queue.put(db_stream)
+                    except Exception as e:
+                        # print("NOT saved")
+                        print(e)
