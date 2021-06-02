@@ -133,6 +133,7 @@ class MyTwitter(Rules):
                 try:
                     if hasattr(stream_results["includes"], "places"):
                         geo_location = stream_results["includes"]["places"][0]["name"]
+                        print("has geo:", geo_location)
                 except Exception as e:
                     continue
 
