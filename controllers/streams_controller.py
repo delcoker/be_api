@@ -55,7 +55,7 @@ class MyTwitter(Rules):
         self.get_stream(headers)
 
     def ping_backend(self):
-        be_url = "dwm-social-media-backend.herokuapp.com"
+        be_url = "https://dwm-social-media-backend.herokuapp.com"
         time_count = 60
         try:
             while True:
