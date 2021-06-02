@@ -82,6 +82,7 @@ class MyTwitter(Rules):
                 for response_line in response.iter_lines():
                     if response_line:
                         json_response = json.loads(response_line)
+                        print(json_response)
                         self.stream_queue.put(json_response)
                         count = 1
             except Exception as r:
