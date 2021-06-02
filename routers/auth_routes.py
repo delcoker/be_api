@@ -11,7 +11,7 @@ from controllers import crud
 from core.schemas import user_schemas
 
 
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv('JWT_EXPIRATION_TIME')
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('JWT_EXPIRATION_TIME'))
 
 router = APIRouter(
     prefix="/auth",
