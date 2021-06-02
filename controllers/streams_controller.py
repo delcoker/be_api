@@ -55,15 +55,18 @@ class MyTwitter(Rules):
         self.get_stream(headers)
 
     def ping_backend(self):
-        be_url = "https://dwm-social-media-backend.herokuapp.com/"
+        be_url = "dwm-social-media-backend.herokuapp.com"
         time_count = 60
-        try:
-            while True:
+        while True:
+            try:
                 ping(be_url, verbose=True, timeout=2000)
-                print("pinging be")
+
+                # requests.get(be_url, stream=True)
+
+                print("pinging BE")
                 time.sleep(time_count)
-        except socket.error as e:
-            print("Ping Error:", e)
+            except socket.error as e:
+                print("Ping Error:", e)
 
     # Code for generating bearer token
     def generate_bearer_token(self):
