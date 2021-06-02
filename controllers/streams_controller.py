@@ -9,7 +9,8 @@ import json
 import base64
 # Test for stream end
 
-from core.models.database import SessionLocal, engine
+import socket
+from pythonping import ping
 
 # Import os and dotenv to read data from env file
 import os
@@ -31,6 +32,39 @@ load_dotenv()
 # MyTwitter is inheriting from the parent class 'Rules' found in rules controller
 class MyTwitter(Rules):
 
+    def __init__(self) -> None:
+        super().__init__()
+        # Start queues for streams and sentiment scores
+        self.stream_queue = Queue()
+        self.sentiment_queue = Queue()
+
+        # Threads so functions can be running in background asynchronously
+        threading.Thread(target=self.store_streams, daemon=True).start()
+        threading.Thread(target=self.score_sentiment, daemon=True).start()
+        threading.Thread(target=self.ping_backend, daemon=True).start()
+
+        # create headers
+        headers = self.create_headers(os.getenv('TWITTER_BEARER_TOKEN'))
+        # get rules
+        # rules = self.get_rules(headers)
+        # delete rules
+        # self.delete_all_rules(headers, rules)
+        # set rules is being called from the rules controller
+        self.set_rules()
+        # start stream
+        self.get_stream(headers)
+
+    def ping_backend(self):
+        be_url = "https://dwm-social-media-backend.herokuapp.com/"
+        time_count = 60
+        try:
+            while True:
+                ping(be_url, verbose=True, timeout=2000)
+                print("pinging be")
+                time.sleep(time_count)
+        except socket.error as e:
+            print("Ping Error:", e)
+
     # Code for generating bearer token
     def generate_bearer_token(self):
         bearer_token = base64.b64encode(
@@ -47,27 +81,6 @@ class MyTwitter(Rules):
         data = resp.json()
 
         return data
-
-    def __init__(self) -> None:
-        super().__init__()
-        # Start queues for streams and sentiment scores
-        self.stream_queue = Queue()
-        self.sentiment_queue = Queue()
-
-        # Threads so functions can be running in background asynchronously
-        threading.Thread(target=self.store_streams, daemon=True).start()
-        threading.Thread(target=self.score_sentiment, daemon=True).start()
-
-        # create headers
-        headers = self.create_headers(os.getenv('TWITTER_BEARER_TOKEN'))
-        # get rules
-        # rules = self.get_rules(headers)
-        # delete rules
-        # self.delete_all_rules(headers, rules)
-        # set rules is being called from the rules controller
-        self.set_rules()
-        # start stream
-        self.get_stream(headers)
 
     # Start getting tweets that contain the rules specified
     def get_stream(self, headers):  # , token:str set, bearer_token,
