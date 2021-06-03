@@ -41,7 +41,7 @@ class MyTwitter(Rules):
         # Threads so functions can be running in background asynchronously
         threading.Thread(target=self.store_streams, daemon=True).start()
         threading.Thread(target=self.score_sentiment, daemon=True).start()
-        threading.Thread(target=self.ping_backend, daemon=True).start()
+        # threading.Thread(target=self.ping_backend, daemon=True).start()
 
         # create headers
         headers = self.create_headers(os.getenv('TWITTER_BEARER_TOKEN'))
