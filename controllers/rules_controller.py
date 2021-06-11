@@ -1,11 +1,9 @@
 import requests
 import json
-from sqlalchemy.orm import Session
 from fastapi_sqlalchemy import db
 
 # Import os and dotenv to read data from env file
 import os
-from dotenv import load_dotenv
 
 # custom
 from core.models import users
@@ -14,17 +12,17 @@ from core.models import users
 class Rules:
     def __init__(self) -> None:
         print("rules controller initialised")
+        self.rules_uri = "https://api.twitter.com/2/tweets/search/stream/rules"
 
     # Code for creating headers to connect to twitter for the streams
-    def create_headers(self, bearer_token):
+    @staticmethod
+    def create_headers(bearer_token):
         headers = {"Authorization": "Bearer {}".format(bearer_token)}
         return headers
 
     # Get the rules that are stored by twitter for user account
     def get_rules(self, headers):
-        response = requests.get(
-            "https://api.twitter.com/2/tweets/search/stream/rules", headers=headers
-        )
+        response = requests.get(self.rules_uri, headers=headers)
         if response.status_code != 200:
             raise Exception(
                 "Cannot get rules (HTTP {}): {}".format(response.status_code, response.text)
@@ -38,11 +36,7 @@ class Rules:
 
         ids = list(map(lambda rule: rule["id"], rules["data"]))
         payload = {"delete": {"ids": ids}}
-        response = requests.post(
-            "https://api.twitter.com/2/tweets/search/stream/rules",
-            headers=headers,
-            json=payload
-        )
+        response = requests.post(self.rules_uri, headers=headers, json=payload)
         if response.status_code != 200:
             raise Exception(
                 "Cannot delete rules (HTTP {}): {}".format(
@@ -61,16 +55,23 @@ class Rules:
         with db():
             scopes = db.session.query(users.Scope).all()
             # Put scopes in map to group users with same scopes
-            scope_map = self.get_scopes_map(scopes)
+            scope_map = self.match_similar_scope_to_multiple_users_and_sanitize_map(scopes)
+            swap_scope_map = self.swap_key_values_dict(scope_map)
             sample_rules = []
-            for scope, user_ids in scope_map.items():
-                sample_rules.append({"value": scope, "tag": user_ids})
+
+            for user_ids, scopes_list in swap_scope_map.items():
+
+                scope_concat = ''
+                for scope in scopes_list:
+                    if len(scope_concat + " OR " + scope) > 512 or len(scope_concat) - 4 > 512:  # if addition will be > than 512
+                        sample_rules.append({"value": scope_concat, "tag": user_ids})
+                        scope_concat = ''
+                    scope_concat += scope + " OR "
+
+                sample_rules.append({"value": scope_concat[:-4], "tag": user_ids})
+
             payload = {"add": sample_rules}
-            response = requests.post(
-                "https://api.twitter.com/2/tweets/search/stream/rules",
-                headers=headers,
-                json=payload,
-            )
+            response = requests.post(self.rules_uri, headers=headers, json=payload)
             if response.status_code != 201:
                 raise Exception(
                     "Cannot add rules (HTTP {}): {}".format(
@@ -78,7 +79,8 @@ class Rules:
                 )
             print(json.dumps(response.json()))
 
-    def get_scopes_map(self, scopes):
+    @staticmethod
+    def match_similar_scope_to_multiple_users_and_sanitize_map(scopes):
         scope_map = {}
         for scope_row in scopes:
             scopes_obj = scope_row.scope.split(',')  # split scopes
@@ -92,3 +94,14 @@ class Rules:
                     scope_map[sanitized_scope] = str(
                         scope_row.user_id)  # else create an index for the scope with the user id
         return scope_map  # return scope map
+
+    @staticmethod
+    def swap_key_values_dict(dictionary):
+        new_dict = {}
+        for key, value in dictionary.items():
+            if value in new_dict:
+                new_dict[value].append(key)
+            else:
+                new_dict[value] = [key]
+
+        return new_dict
