@@ -3,8 +3,7 @@ from sqlalchemy.orm import Session
 
 # Custom
 from controllers import rules_controller
-from core.models.database import SessionLocal, engine
-# from core.schemas import categories
+from core.models.database import SessionLocal
 from core.models import users
 from controllers.crud import get_current_user
 

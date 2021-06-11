@@ -15,7 +15,8 @@ class Rules:
         self.rules_uri = "https://api.twitter.com/2/tweets/search/stream/rules"
 
     # Code for creating headers to connect to twitter for the streams
-    def create_headers(self, bearer_token):
+    @staticmethod
+    def create_headers(bearer_token):
         headers = {"Authorization": "Bearer {}".format(bearer_token)}
         return headers
 
