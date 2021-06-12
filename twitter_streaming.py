@@ -4,7 +4,6 @@ from fastapi import FastAPI
 import os
 from dotenv import load_dotenv
 # Middleware
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi_sqlalchemy import DBSessionMiddleware  # middleware helper
 from starlette.middleware.sessions import SessionMiddleware
 load_dotenv()

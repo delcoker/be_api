@@ -1,8 +1,6 @@
 from sqlalchemy.orm import Session
 # Import model and schemas from other folders
 from core.models import users
-from core.schemas import user_schemas
-from core.schemas import group_categories
 from core.models.database import SessionLocal, engine
 
 # Import OAuth2
@@ -48,8 +46,10 @@ oauth2_scheme = OAuth2PasswordBearer(
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
+
 def get_password_hash(password):
     return pwd_context.hash(password)
+
 
 # Retrieve a user based on their email
 # def get_user(db: Session, email: str):
@@ -57,6 +57,7 @@ def get_password_hash(password):
 
 def get_user_by_email(db: Session, email: str):
     return db.query(users.User).filter(users.User.email == email).first()
+
 
 def create_user(db: Session, first_name: str, last_name: str, email: str, phone: str, password: str):
     db_user = users.User(
@@ -69,13 +70,14 @@ def create_user(db: Session, first_name: str, last_name: str, email: str, phone:
     db.commit()
     db.refresh(db_user)
     db_group_category = users.GroupCategory(
-        user_id = db_user.id,
-        group_category_name = "Topics"
+        user_id=db_user.id,
+        group_category_name="Topics"
     )
     db.add(db_group_category)
     db.commit()
     db.refresh(db_group_category)
     return db_user
+
 
 # Authenticate and return a user
 def authenticate_user(db: Session, email: str, password: str):
@@ -164,20 +166,22 @@ def get_users(db: Session):  # , skip: int = 0, limit: int = 100
     # return db.query(users.User).offset(skip).limit(limit).all()
     return db.query(users.User).all()
 
+
 # Code for creating group category
-def create_group_category(db: Session, group_category_name: str, token:str):
+def create_group_category(db: Session, group_category_name: str, token: str):
     user = get_current_user(db, token)
     db_group_category = users.GroupCategory(
-        user_id= user.id,
-        group_category_name = group_category_name
+        user_id=user.id,
+        group_category_name=group_category_name
     )
     db.add(db_group_category)
     db.commit()
     db.refresh(db_group_category)
     return db_group_category
 
+
 # Get all Group Categories
-def get_group_categories(db: Session, token:str):
+def get_group_categories(db: Session, token: str):
     user = get_current_user(db, token)
     # Limit and offset works like pagination
     return db.query(users.GroupCategory).filter(users.GroupCategory.user_id == user.id).all()
