@@ -6,6 +6,7 @@ from core.models.database import SessionLocal
 from core.models import users
 from controllers.crud import get_current_user
 
+
 # Dependency
 def get_db():
     db = SessionLocal()
@@ -14,17 +15,19 @@ def get_db():
     finally:
         db.close()
 
+
 # Get all Categories
-def get_all_categories(db: Session, token:str):
+def get_all_categories(db: Session, token: str):
     user = get_current_user(db, token)
     # Limit and offset works like pagination
     return db.query(users.Category).join(users.GroupCategory).filter(users.GroupCategory.user_id == user.id).all()
 
+
 # Get all Group Categories
 def create_category(db: Session, category_name: str, group_category_id: int, keywords: str):
     db_category = users.Category(
-        group_category_id = group_category_id,
-        category_name = category_name
+        group_category_id=group_category_id,
+        category_name=category_name
     )
     db.add(db_category)
     db.commit()
@@ -32,18 +35,20 @@ def create_category(db: Session, category_name: str, group_category_id: int, key
 
     # if keywords:
     db_keywords = users.Keyword(
-        category_id = db_category.id,
-        keywords = keywords
+        category_id=db_category.id,
+        keywords=keywords
     )
     db.add(db_keywords)
     db.commit()
     db.refresh(db_keywords)
     return db_category
 
+
 # Get a specific Category
-def get_category(db: Session, token:str, category_id: int):
+def get_category(db: Session, token: str, category_id: int):
     user = get_current_user(db, token)
     return db.query(users.Category).join(users.GroupCategory).filter(users.Category.id == category_id, users.GroupCategory.user_id == user.id).first()
+
 
 # Update a particular category
 def update_category(db: Session, category_id: str, category_name: str, group_category_id: int, keywords: str):
@@ -58,6 +63,7 @@ def update_category(db: Session, category_id: str, category_name: str, group_cat
         })
     db.commit()
     return result
+
 
 # Delete a particular category
 def delete_category(db: Session, category_id: int):

@@ -21,8 +21,6 @@ def get_db():
 
 
 # Code for creating group category
-
-
 def create_scope(db: Session, scope: str, token: str):
     user = get_current_user(db, token)
     db_scope = users.Scope(

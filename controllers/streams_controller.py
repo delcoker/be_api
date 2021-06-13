@@ -37,10 +37,12 @@ class MyTwitter(Rules):
         # Start queues for streams and sentiment scores
         self.stream_queue = Queue()
         self.sentiment_queue = Queue()
+        self.post_cateogry_queue = Queue()
 
         # Threads so functions can be running in background asynchronously
         threading.Thread(target=self.store_streams, daemon=True).start()
         threading.Thread(target=self.score_sentiment, daemon=True).start()
+        threading.Thread(target=self.check_post_for_catgory, daemon=True).start()
         # threading.Thread(target=self.ping_backend, daemon=True).start()
 
         # create headers
@@ -66,8 +68,12 @@ class MyTwitter(Rules):
         except socket.error as e:
             print("Ping Error:", e)
 
+    def check_post_for_category(self):
+        pass
+
     # Code for generating bearer token
-    def generate_bearer_token(self):
+    @staticmethod
+    def generate_bearer_token():
         bearer_token = base64.b64encode(
             f"{os.getenv('TWITTER_CLIENT_ID')}:{os.getenv('TWITTER_CLIENT_SECRET')}".encode())
         headers = {
