@@ -18,10 +18,12 @@ class User(Base):
 
     # These are links to the other tables so this table can fetch data from the other tables and thos tables 
     # can fetch data from this table. it does this via the foreign key join
-    social_accounts = relationship("SocialAccount", back_populates="owner", cascade="all, delete", passive_deletes=True)  # so oncascade it should delete the data in other tables that are linked to it
+    social_accounts = relationship("SocialAccount", back_populates="owner", cascade="all, delete",
+                                   passive_deletes=True)  # so oncascade it should delete the data in other tables that are linked to it
     group_categories = relationship("GroupCategory", back_populates="owner_of_group_category", cascade="all, delete", passive_deletes=True)
     scopes = relationship("Scope", back_populates="creator", cascade="all, delete", passive_deletes=True)
     posts = relationship("Post", back_populates="post_getter", cascade="all, delete", passive_deletes=True)
+
 
 class SocialAccount(Base):
     __tablename__ = "social_accounts"
@@ -34,6 +36,7 @@ class SocialAccount(Base):
 
     owner = relationship("User", back_populates="social_accounts")
 
+
 class GroupCategory(Base):
     __tablename__ = "group_categories"
 
@@ -43,7 +46,7 @@ class GroupCategory(Base):
 
     owner_of_group_category = relationship("User", back_populates="group_categories")
     categories = relationship("Category", back_populates="group_category")
-    
+
 
 class Category(Base):
     __tablename__ = "categories"
@@ -60,25 +63,27 @@ class Keyword(Base):
     __tablename__ = "keywords"
 
     id = Column(Integer, primary_key=True, index=True)
-    category_id = Column(Integer,  ForeignKey('categories.id'))
+    category_id = Column(Integer, ForeignKey('categories.id'))
     keywords = Column(String, index=True)
 
     category = relationship("Category", back_populates="keywords")
+
 
 class Scope(Base):
     __tablename__ = "scopes"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer,  ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
     scope = Column(String, index=True)
 
     creator = relationship("User", back_populates="scopes")
+
 
 class Post(Base):
     __tablename__ = "posts"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer,  ForeignKey('users.id'))
+    user_id = Column(Integer, ForeignKey('users.id'))
     source_name = Column(String, index=True)
     data_id = Column(String, index=True)
     data_author_id = Column(String, index=True)
@@ -96,8 +101,19 @@ class PostSentimentScore(Base):
     __tablename__ = "post_sentiment_scores"
 
     id = Column(Integer, primary_key=True, index=True)
-    post_id = Column(Integer,  ForeignKey('posts.id'))
+    post_id = Column(Integer, ForeignKey('posts.id'))
     sentiment = Column(String, index=True)
     score = Column(Float, index=True)
 
     sentiment_post = relationship("Post", back_populates="sentiment_scores")
+
+
+class PostAboutCategory(Base):
+    __tablename__ = "post_is_about_category"
+
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey('posts.id'))
+    category_id = Column(Integer, ForeignKey('categories.id'))
+
+    # category = relationship("Category", back_populates="post_is_about_category")
+    # post_getter = relationship("Post", back_populates="posts")
