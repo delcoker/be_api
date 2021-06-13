@@ -3,8 +3,9 @@ from typing import List, Optional
 from pydantic import BaseModel
 from core.schemas.keywords import Keyword
 
+
 class CategoryBase(BaseModel):
-    category_name	: str
+    category_name: str
 
 
 class CategoryCreate(CategoryBase):
@@ -13,6 +14,7 @@ class CategoryCreate(CategoryBase):
 
     class Config:
         orm_mode = True
+
 
 class Category(CategoryCreate):
     id: int

@@ -18,7 +18,8 @@ from dotenv import load_dotenv
 
 # custom
 from core.models import users
-from controllers.crud import get_current_user
+
+# from controllers.crud import get_current_user
 from queue import Queue
 import threading
 from dependency.vader_sentiment_api import SentimentApi
@@ -34,15 +35,24 @@ class MyTwitter(Rules):
 
     def __init__(self) -> None:
         super().__init__()
+        try:
+            with db():
+                self.keywords = db.session.query(users.Keyword).join(users.Category).all()
+                print(self.keywords)
+                # exit()
+        except Exception as e:
+            # print("NOT saved")
+            print(e)
+
         # Start queues for streams and sentiment scores
         self.stream_queue = Queue()
         self.sentiment_queue = Queue()
-        self.post_cateogry_queue = Queue()
+        self.categorize_post_queue = Queue()
 
         # Threads so functions can be running in background asynchronously
         threading.Thread(target=self.store_streams, daemon=True).start()
         threading.Thread(target=self.score_sentiment, daemon=True).start()
-        threading.Thread(target=self.check_post_for_catgory, daemon=True).start()
+        threading.Thread(target=self.check_post_is_about_category, daemon=True).start()
         # threading.Thread(target=self.ping_backend, daemon=True).start()
 
         # create headers
@@ -68,8 +78,34 @@ class MyTwitter(Rules):
         except socket.error as e:
             print("Ping Error:", e)
 
-    def check_post_for_category(self):
-        pass
+    def check_post_is_about_category(self):
+        while True:
+            post_to_categorize = self.categorize_post_queue.get()
+            # print(f"Tagging {post_to_categorize.text}")
+
+            for keyword_record in self.keywords:
+                # print(f"checking for {keyword_record.keywords}")
+                keyword_list = keyword_record.keywords.split(",")
+                # print(keyword_list)
+                for keyword in keyword_list:
+                    keyword = str.encode(keyword.lower().strip())
+                    # print(keyword, post_to_categorize.text.lower())
+                    if keyword.lower().strip() in post_to_categorize.text.lower() and keyword != "":
+                        db_categorization = users.PostAboutCategory(
+                            post_id=post_to_categorize.id,
+                            category_id=keyword_record.category_id
+                        )
+                        # print('categorized', keyword, post_to_categorize.id)
+                        try:
+                            with db():
+                                db.session.add(db_categorization)
+                                db.session.commit()
+                                db.session.refresh(db_categorization)
+                        except Exception as e:
+                            print("Could not categorize post")
+                            print(e)
+                        break
+            # print(f"Finished attempt to categorize {post_to_categorize.text}")
 
     # Code for generating bearer token
     @staticmethod
@@ -112,7 +148,7 @@ class MyTwitter(Rules):
                 count += 1
                 # print(r)
                 print("Printed after " + str(time_count) + " seconds.")
-                # print("Printed after 5 seconds.")
+                print(r)
                 continue
                 # else:
                 #     print(' Put to sleep before retrying.')
@@ -178,6 +214,8 @@ class MyTwitter(Rules):
                             db.session.commit()
                             db.session.refresh(db_stream)
                             self.sentiment_queue.put(db_stream)
+
+                            self.categorize_post_queue.put(db_stream)
                     except Exception as e:
                         # print("NOT saved")
                         print(e)
