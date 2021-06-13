@@ -38,7 +38,7 @@ class MyTwitter(Rules):
         try:
             with db():
                 self.keywords = db.session.query(users.Keyword).join(users.Category).all()
-                print(self.keywords)
+                # print(self.keywords)
                 # exit()
         except Exception as e:
             # print("NOT saved")

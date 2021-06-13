@@ -40,9 +40,7 @@ class Rules:
         response = requests.post(self.rules_uri, headers=headers, json=payload)
         if response.status_code != 200:
             raise Exception(
-                "Cannot delete rules (HTTP {}): {}".format(
-                    response.status_code, response.text
-                )
+                "Cannot delete rules (HTTP {}): {}".format(response.status_code, response.text)
             )
         print(json.dumps(response.json()))
 
@@ -75,7 +73,6 @@ class Rules:
                     scope_concat += scope + " OR "
 
                 sample_rules.append({"value": scope_concat[:-4], "tag": user_ids})
-                clauses = 0
 
             payload = {"add": sample_rules}
             response = requests.post(self.rules_uri, headers=headers, json=payload)
