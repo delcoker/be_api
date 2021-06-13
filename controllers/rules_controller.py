@@ -64,6 +64,8 @@ class Rules:
                 scope_concat = ''
                 for scope in scopes_list:
                     if len(scope_concat + " OR " + scope) > 512 or len(scope_concat) - 4 > 512:  # if addition will be > than 512
+                        if "OR" in scope_concat[:-4]:
+                            scope_concat = scope_concat[:-4]
                         sample_rules.append({"value": scope_concat, "tag": user_ids})
                         scope_concat = ''
                     scope_concat += scope + " OR "
