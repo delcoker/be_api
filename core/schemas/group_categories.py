@@ -5,7 +5,7 @@ from core.schemas.categories import Category
 
 
 class GroupCategoryBase(BaseModel):
-    group_category_name	: str
+    group_category_name: str
 
 
 class GroupCategoryCreate(GroupCategoryBase):
@@ -22,7 +22,6 @@ class GroupCategory(GroupCategoryBase):
 
 class GroupCategoryList(GroupCategory):
     categories: List[Category] = []
-
 
     class Config:
         orm_mode = True

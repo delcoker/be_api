@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 # Middleware
 from fastapi_sqlalchemy import DBSessionMiddleware  # middleware helper
 from starlette.middleware.sessions import SessionMiddleware
+
 load_dotenv()
 
 app = FastAPI()

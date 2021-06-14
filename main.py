@@ -26,20 +26,20 @@ load_dotenv()
 app = FastAPI()
 
 origins = [
-# "http://localhost.tiangolo.com",
-# "https://localhost.tiangolo.com",
-# "http://localhost",
-# "http://localhost:8080",
-# "https://dwm-social-media-frontend.herokuapp.com",
-"*"
+    # "http://localhost.tiangolo.com",
+    # "https://localhost.tiangolo.com",
+    # "http://localhost",
+    # "http://localhost:8080",
+    # "https://dwm-social-media-frontend.herokuapp.com",
+    "*"
 ]
 
 app.add_middleware(
-CORSMiddleware,
-allow_origins=origins,
-allow_credentials=True,
-allow_methods=["*"],
-allow_headers=["*"],
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('JWT_SECRET_KEY'))

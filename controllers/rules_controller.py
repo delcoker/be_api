@@ -11,6 +11,7 @@ from core.models import users
 
 class Rules:
     def __init__(self) -> None:
+        self.max_twitter_clauses = 30
         print("rules controller initialised")
         self.rules_uri = "https://api.twitter.com/2/tweets/search/stream/rules"
 
@@ -39,9 +40,7 @@ class Rules:
         response = requests.post(self.rules_uri, headers=headers, json=payload)
         if response.status_code != 200:
             raise Exception(
-                "Cannot delete rules (HTTP {}): {}".format(
-                    response.status_code, response.text
-                )
+                "Cannot delete rules (HTTP {}): {}".format(response.status_code, response.text)
             )
         print(json.dumps(response.json()))
 
@@ -62,10 +61,15 @@ class Rules:
             for user_ids, scopes_list in swap_scope_map.items():
 
                 scope_concat = ''
+                clauses = 0
                 for scope in scopes_list:
-                    if len(scope_concat + " OR " + scope) > 512 or len(scope_concat) - 4 > 512:  # if addition will be > than 512
+                    clauses += 1
+                    if clauses > self.max_twitter_clauses - 1 or len(scope_concat + " OR " + scope) > 512:  # if addition will be > than 512
+                        if "OR" in scope_concat[:-4]:
+                            scope_concat = scope_concat[:-4]
                         sample_rules.append({"value": scope_concat, "tag": user_ids})
                         scope_concat = ''
+                        clauses = 0
                     scope_concat += scope + " OR "
 
                 sample_rules.append({"value": scope_concat[:-4], "tag": user_ids})

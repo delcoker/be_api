@@ -21,8 +21,6 @@ def get_db():
 
 
 # Code for creating group category
-
-
 def create_scope(db: Session, scope: str, token: str):
     user = get_current_user(db, token)
     db_scope = users.Scope(
@@ -50,8 +48,24 @@ def get_scope(db: Session, token: str, scope_id: int):
 
 # Update a scope
 def update_scope(db: Session, scope_id: int, scope: str):
+    bad_chars = [';', '"', "'", "*"]
+    scope_list = scope.split(",")
+    sanitized_list = []
+
+    for stripped_string in scope_list:
+        for i in bad_chars:
+            stripped_string = stripped_string.replace(i, '')
+
+        stripped_string = stripped_string.strip()
+        if ' ' in stripped_string:
+            stripped_string = '"' + stripped_string + '"'
+        sanitized_list.append(stripped_string)
+
+    # print(sanitized_list)
+    scopes = ",".join(sanitized_list)
+
     result = db.query(users.Scope).filter(users.Scope.id == scope_id).update({
-        "scope": scope
+        "scope": scopes
     })
     db.commit()
     test.set_rules()
