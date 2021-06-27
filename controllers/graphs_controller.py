@@ -1,17 +1,10 @@
 # From system
-import collections
 
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract, text
-import sqlalchemy as sa
-import datetime
-import json
-import calendar
-# from sqlalchemy.sql import text
 
 # Custom
 from core.models.database import SessionLocal, engine
-from core.models import users
+from controllers.crud import get_current_user
 
 
 # Dependency
@@ -23,49 +16,29 @@ def get_db():
         db.close()
 
 
-def daily_collected_conversations(db: Session, start_date: str, end_date: str, granularity: str):
-    # if granularity == 'month':
-    #     monthly_conversations = db.query(extract('month',users.PostDataCategorisedView.created_at).label('months'), extract('year',users.PostDataCategorisedView.created_at).label('year'),func.count(users.PostDataCategorisedView.post_id).label('conversations') ).filter(
-    #         users.PostDataCategorisedView.created_at >= start_date, users.PostDataCategorisedView.created_at <= end_date
-    #     ).group_by_clause(sa.func.month(users.PostDataCategorisedView.created_at)).all()
-    #
-    #     for month_ids, years, conversation_count in monthly_conversations:
-    #         months.append(get_month_name(month_ids)+' '+str(years))
-    #         conversation_counts.append(conversation_count)
-    #
-    #     monthly_sentiments = db.query(users.PostDataCategorisedView.sentiment_score, func.count(users.PostDataCategorisedView.post_id).label('conversations') ).filter(
-    #         users.PostDataCategorisedView.created_at >= start_date, users.PostDataCategorisedView.created_at <= end_date
-    #     ).group_by_clause(users.PostDataCategorisedView.sentiment_score).all()
-
-    # for sentiment_score, sentiment_count in monthly_sentiments:
-
-    # elif granularity == 'year':
-
-    # result = engine.execute(sql)
-    # return result
-    # names = [row[0] for row in result]
-    # print(names)
-
+def daily_collected_conversations(db: Session, start_date: str, end_date: str, granularity: str, token: str):
+    user = get_current_user(db, token)
     date_format, group_by_clause = get_date_granularity(granularity)
 
-    conversation_data = daily_conversations_chart(date_format, start_date, end_date, group_by_clause)
+    conversation_data = daily_conversations_chart(date_format, start_date, end_date, group_by_clause, user)
 
     charts = {"charts": [conversation_data]}
-    # charts = {"charts": [render_dict, render_dict]}
+
     return charts
 
 
-def positive_negative_conversations(start_date: str, end_date: str, granularity: str):
+def positive_negative_conversations(db: Session, start_date: str, end_date: str, granularity: str, token: str):
+    user = get_current_user(db, token)
     date_format, group_by_clause = get_date_granularity(granularity)
 
-    sentiment_data = positive_negative_chart(date_format, start_date, end_date, group_by_clause)
+    sentiment_data = positive_negative_chart(date_format, start_date, end_date, group_by_clause, user)
 
     charts = {"charts": [sentiment_data]}
 
     return charts
 
 
-def positive_negative_chart(date_format, start_date, end_date, group_by):
+def positive_negative_chart(date_format, start_date, end_date, group_by, user):
     dates = []
     positive_data = {}
     negative_data = {}
@@ -75,7 +48,7 @@ def positive_negative_chart(date_format, start_date, end_date, group_by):
     neutral_series_data = []
     sentiment_data = engine.execute(
         "SELECT DATE_FORMAT(created_at, '" + date_format + "') AS date, sentiment_score as 'sentiment', COUNT(post_id)  as 'count'" + \
-        " FROM post_data_categorised_view WHERE created_at between '" + str(start_date) + "' and '" + str(
+        " FROM post_data_categorised_view WHERE user_id = " + str(user.id) + " AND created_at between '" + str(start_date) + "' and '" + str(
             end_date) + "' GROUP BY sentiment_score, " + group_by + " ORDER BY " + group_by + " DESC")
 
     for date, sentiment, count in sentiment_data:
@@ -102,9 +75,6 @@ def positive_negative_chart(date_format, start_date, end_date, group_by):
             neutral_series_data.append(neutral_dict[date])
         else:
             neutral_series_data.append(0)
-        # positive_array_data.append(0) if date in positive_data else positive_array_data.append(positive_data[date])
-        # negative_array_data.append(0) if date in negative_data else negative_array_data.append(negative_data[date])
-    # return positive_array_data
 
     chart = {"type": 'area', 'zoomType': 'xy'}
     series = [{"name": 'Positive', "data": positive_array_data},
@@ -116,7 +86,7 @@ def positive_negative_chart(date_format, start_date, end_date, group_by):
     plot_options = get_plot_options()
     exporting = {'enabled': True}
 
-    sentiment_data = dict(id="total_conversations", chart=chart, series=series,
+    sentiment_data = dict(id="collected_sentiments", chart=chart, series=series,
                           title=title, xAxis=xAxis, tooltip=tooltip, plotOptions=plot_options,
                           exporting=exporting)
     return sentiment_data
@@ -148,13 +118,13 @@ def get_tool_tip_format():
     }
 
 
-def daily_conversations_chart(date_format, start_date, end_date, group_by):
+def daily_conversations_chart(date_format, start_date, end_date, group_by, user):
     categories = []
     data = []
     sql = "SELECT DATE_FORMAT(created_at, '{}') AS date, COUNT(post_id) as 'Data' " \
           "FROM post_data_categorised_view " \
-          "WHERE created_at between '{}' and '{}' " \
-          "GROUP BY  + {}".format(date_format, start_date, end_date, group_by)
+          "WHERE user_id = {} AND created_at between '{}' and '{}' " \
+          "GROUP BY  + {}".format(date_format, user.id, start_date, end_date, group_by)
 
     conversations_data = engine.execute(sql)
 
@@ -169,7 +139,7 @@ def daily_conversations_chart(date_format, start_date, end_date, group_by):
     plotOptions = get_plot_options()
     exporting = {'enabled': True}
 
-    conversation_data = dict(id=1, chart=chart, series=series,
+    conversation_data = dict(id="total_collected_conversations", chart=chart, series=series,
                              title=title, xAxis=xAxis, plotOptions=plotOptions,
                              exporting=exporting)
     return conversation_data
@@ -189,14 +159,11 @@ def get_date_granularity(granularity):
     return date_format, group_by
 
 
-def get_month_name(month_number):
-    return calendar.month_name[month_number]
-
-
-def highlights(start_date, end_date):
+def highlights(db: Session, start_date, end_date, token: str):
+    user = get_current_user(db, token)
     sql = "SELECT sentiment_score, COUNT(post_id) as count " \
           "FROM post_data_categorised_view " \
-          "WHERE created_at between '{}' and '{}' GROUP BY sentiment_score;".format(start_date, end_date)
+          "WHERE user_id = {} AND created_at between '{}' and '{}' GROUP BY sentiment_score;".format(user.id, start_date, end_date)
 
     highlights_query = engine.execute(sql)
 
@@ -205,3 +172,113 @@ def highlights(start_date, end_date):
         sentiment_dict[sentiment] = count
 
     return sentiment_dict
+
+
+def issue_of_importance(db: Session, start_date: str, end_date: str, token: str):
+    user = get_current_user(db, token)
+
+    issue_of_importance_data = issue_of_importance_chart(start_date, end_date, user)
+
+    charts = {"charts": [issue_of_importance_data]}
+
+    return charts
+
+
+def issue_of_importance_chart(start_date, end_date, user):
+    category_names = []
+    importance = []
+    sql = "SELECT categories.category_name, COUNT(post_id) as 'importance' " \
+          "FROM post_data_categorised_view " \
+          "JOIN categories ON post_data_categorised_view.category_id = categories.id " \
+          "WHERE user_id = {} AND created_at between '{}' and '{}' GROUP BY categories.category_name " \
+          "ORDER BY importance DESC".format(user.id, start_date, end_date)
+
+    issue_data = engine.execute(sql)
+
+    for category_name, importance_data in issue_data:
+        category_names.append(category_name)
+        importance.append(importance_data)
+
+    chart = {"type": 'bar', 'zoomType': 'xy'}
+    series = [{"name": 'Importance', "data": importance}]
+    title = {"text": 'Topic Importance'}
+    xAxis = {"categories": category_names}
+    plotOptions = get_plot_options()
+    exporting = {'enabled': True}
+
+    issue_of_importance_data = dict(id="issue_of_importance", chart=chart, series=series,
+                                    title=title, xAxis=xAxis, plotOptions=plotOptions,
+                                    exporting=exporting)
+
+    return issue_of_importance_data
+
+
+def issue_of_severity(db: Session, start_date: str, end_date: str, granularity: str, token: str):
+    user = get_current_user(db, token)
+
+    date_format, group_by_clause = get_date_granularity(granularity)
+
+    issue_of_importance_data = issue_severity_chart(start_date, end_date, group_by_clause, user)
+
+    charts = {"charts": [issue_of_importance_data]}
+
+    return charts
+
+
+def issue_severity_chart(start_date, end_date, group_by, user):
+    categories_name = []
+    positive_data = {}
+    negative_data = {}
+    neutral_dict = {}
+    positive_array_data = []
+    negative_array_data = []
+    neutral_series_data = []
+
+    sql = "SELECT categories.category_name, COUNT(post_id) as 'importance', sentiment_score " \
+          "FROM post_data_categorised_view " \
+          "JOIN categories ON post_data_categorised_view.category_id = categories.id " \
+          "WHERE user_id = {} AND created_at between '{}' and '{}' GROUP BY categories.category_name, sentiment_score " \
+          "ORDER BY importance DESC".format(user.id, start_date, end_date)
+
+    issue_severity_data = engine.execute(sql)
+
+    for category_name, importance, sentiment_score in issue_severity_data:
+        if category_name not in categories_name:
+            categories_name.append(category_name)
+        if sentiment_score == "POSITIVE":
+            positive_data[category_name] = importance
+        elif sentiment_score == "NEGATIVE":
+            negative_data[category_name] = importance
+        elif sentiment_score == "NEUTRAL":
+            neutral_dict[category_name] = importance
+
+    for category_name in categories_name:
+        if category_name in positive_data:
+            positive_array_data.append(positive_data[category_name])
+        else:
+            positive_array_data.append(0)
+
+        if category_name in negative_data:
+            negative_array_data.append(negative_data[category_name])
+        else:
+            negative_array_data.append(0)
+
+        if category_name in neutral_dict:
+            neutral_series_data.append(neutral_dict[category_name])
+        else:
+            neutral_series_data.append(0)
+
+    chart = {"type": 'bar', 'zoomType': 'xy'}
+    series = [{"name": 'Positive', "data": positive_array_data},
+              {"name": 'Negative', "data": negative_array_data},
+              {"name": 'Neutral', "data": neutral_series_data}]
+    title = {"text": 'Topic Severity'}
+    xAxis = {"categories": categories_name}
+    tooltip = get_tool_tip_format()
+    plot_options = get_plot_options()
+    exporting = {'enabled': True}
+
+    issue_severity_data_chart = dict(id="issue_of_severity", chart=chart, series=series,
+                                     title=title, xAxis=xAxis, tooltip=tooltip, plotOptions=plot_options,
+                                     exporting=exporting)
+    return issue_severity_data_chart
