@@ -13,6 +13,7 @@ router = APIRouter(
     # dependencies=[Depends(get_user_token)]
 )
 
+
 #  Dependency
 async def get_db():
     db = SessionLocal()
@@ -21,7 +22,14 @@ async def get_db():
     finally:
         db.close()
 
+
 @router.post("/")
 def get_graphs(start_date: datetime = Form(...), end_date: datetime = Form(...), granularity: str = Form(...), db: Session = Depends(get_db)):
     graph_result = graphs_controller.daily_collected_conversations(db, start_date, end_date, granularity)
+    return graph_result
+
+
+@router.post("/highlights")
+def get_highlights(start_date: datetime = Form(...), end_date: datetime = Form(...)):
+    graph_result = graphs_controller.highlights(start_date, end_date)
     return graph_result
