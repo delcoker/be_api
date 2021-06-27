@@ -1,11 +1,11 @@
 # From system
-import collections
 
 from sqlalchemy.orm import Session
 
 # Custom
 from core.models.database import SessionLocal, engine
 from controllers.crud import get_current_user
+
 
 # Dependency
 def get_db():
@@ -16,7 +16,7 @@ def get_db():
         db.close()
 
 
-def daily_collected_conversations(db: Session, start_date: str, end_date: str, granularity: str, token:str):
+def daily_collected_conversations(db: Session, start_date: str, end_date: str, granularity: str, token: str):
     user = get_current_user(db, token)
     date_format, group_by_clause = get_date_granularity(granularity)
 
@@ -27,7 +27,7 @@ def daily_collected_conversations(db: Session, start_date: str, end_date: str, g
     return charts
 
 
-def positive_negative_conversations(db: Session, start_date: str, end_date: str, granularity: str, token:str):
+def positive_negative_conversations(db: Session, start_date: str, end_date: str, granularity: str, token: str):
     user = get_current_user(db, token)
     date_format, group_by_clause = get_date_granularity(granularity)
 
@@ -48,7 +48,7 @@ def positive_negative_chart(date_format, start_date, end_date, group_by, user):
     neutral_series_data = []
     sentiment_data = engine.execute(
         "SELECT DATE_FORMAT(created_at, '" + date_format + "') AS date, sentiment_score as 'sentiment', COUNT(post_id)  as 'count'" + \
-        " FROM post_data_categorised_view WHERE user_id = "+str(user.id)+" AND created_at between '" + str(start_date) + "' and '" + str(
+        " FROM post_data_categorised_view WHERE user_id = " + str(user.id) + " AND created_at between '" + str(start_date) + "' and '" + str(
             end_date) + "' GROUP BY sentiment_score, " + group_by + " ORDER BY " + group_by + " DESC")
 
     for date, sentiment, count in sentiment_data:
@@ -106,6 +106,7 @@ def get_plot_options():
         }
     }
 
+
 def get_tool_tip_format():
     return {
         "headerFormat": '<span style="font-size:10px">{point.key}</span><table>',
@@ -115,6 +116,7 @@ def get_tool_tip_format():
         "shared": True,
         "useHTML": True
     }
+
 
 def daily_conversations_chart(date_format, start_date, end_date, group_by, user):
     categories = []
@@ -142,6 +144,7 @@ def daily_conversations_chart(date_format, start_date, end_date, group_by, user)
                              exporting=exporting)
     return conversation_data
 
+
 def get_date_granularity(granularity):
     if granularity == 'year':
         date_format = '%Y'
@@ -155,7 +158,8 @@ def get_date_granularity(granularity):
 
     return date_format, group_by
 
-def highlights(db: Session, start_date, end_date, token:str):
+
+def highlights(db: Session, start_date, end_date, token: str):
     user = get_current_user(db, token)
     sql = "SELECT sentiment_score, COUNT(post_id) as count " \
           "FROM post_data_categorised_view " \
@@ -169,7 +173,8 @@ def highlights(db: Session, start_date, end_date, token:str):
 
     return sentiment_dict
 
-def issue_of_importance(db: Session, start_date: str, end_date: str, token:str):
+
+def issue_of_importance(db: Session, start_date: str, end_date: str, token: str):
     user = get_current_user(db, token)
 
     issue_of_importance_data = issue_of_importance_chart(start_date, end_date, user)
@@ -177,6 +182,7 @@ def issue_of_importance(db: Session, start_date: str, end_date: str, token:str):
     charts = {"charts": [issue_of_importance_data]}
 
     return charts
+
 
 def issue_of_importance_chart(start_date, end_date, user):
     category_names = []
@@ -195,7 +201,7 @@ def issue_of_importance_chart(start_date, end_date, user):
 
     chart = {"type": 'bar', 'zoomType': 'xy'}
     series = [{"name": 'Importance', "data": importance}]
-    title = {"text": 'Issue of importance'}
+    title = {"text": 'Topic Importance'}
     xAxis = {"categories": category_names}
     plotOptions = get_plot_options()
     exporting = {'enabled': True}
@@ -206,18 +212,20 @@ def issue_of_importance_chart(start_date, end_date, user):
 
     return issue_of_importance_data
 
-def issue_of_severity(db: Session, start_date: str, end_date: str, granularity: str, token:str):
+
+def issue_of_severity(db: Session, start_date: str, end_date: str, granularity: str, token: str):
     user = get_current_user(db, token)
 
     date_format, group_by_clause = get_date_granularity(granularity)
 
-    issue_of_importance_data = issue_of_severity_chart(start_date, end_date, group_by_clause, user)
+    issue_of_importance_data = issue_severity_chart(start_date, end_date, group_by_clause, user)
 
     charts = {"charts": [issue_of_importance_data]}
 
     return charts
 
-def issue_of_severity_chart(start_date, end_date, group_by, user):
+
+def issue_severity_chart(start_date, end_date, group_by, user):
     categories_name = []
     positive_data = {}
     negative_data = {}
@@ -264,7 +272,7 @@ def issue_of_severity_chart(start_date, end_date, group_by, user):
     series = [{"name": 'Positive', "data": positive_array_data},
               {"name": 'Negative', "data": negative_array_data},
               {"name": 'Neutral', "data": neutral_series_data}]
-    title = {"text": 'Conversation Types'}
+    title = {"text": 'Topic Severity'}
     xAxis = {"categories": categories_name}
     tooltip = get_tool_tip_format()
     plot_options = get_plot_options()
