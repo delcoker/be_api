@@ -11,3 +11,4 @@ venv
 **/.idea/tasks.xml
 /.vscode/
 .vscode
+*.pyc

@@ -39,3 +39,13 @@ def get_graphs(start_date: datetime = Form(...), end_date: datetime = Form(...),
 def get_highlights(start_date: datetime = Form(...), end_date: datetime = Form(...)):
     graph_result = graphs_controller.highlights(start_date, end_date)
     return graph_result
+
+@router.post("/issue_of_importance")
+def get_issue_of_importance_chart(start_date: datetime = Form(...), end_date: datetime = Form(...), granularity: str = Form(...)):
+    graph_result = graphs_controller.issue_of_importance(start_date, end_date, granularity)
+    return graph_result
+
+@router.post("/issue_of_severity")
+def get_issue_of_severity_chart(start_date: datetime = Form(...), end_date: datetime = Form(...), granularity: str = Form(...)):
+    graph_result = graphs_controller.issue_of_severity(start_date, end_date, granularity)
+    return graph_result
