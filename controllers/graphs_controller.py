@@ -213,19 +213,17 @@ def issue_of_importance_chart(start_date, end_date, user):
     return issue_of_importance_data
 
 
-def issue_of_severity(db: Session, start_date: str, end_date: str, granularity: str, token: str):
+def issue_of_severity(db: Session, start_date: str, end_date: str, token: str):
     user = get_current_user(db, token)
 
-    date_format, group_by_clause = get_date_granularity(granularity)
-
-    issue_of_importance_data = issue_severity_chart(start_date, end_date, group_by_clause, user)
+    issue_of_importance_data = issue_severity_chart(start_date, end_date, user)
 
     charts = {"charts": [issue_of_importance_data]}
 
     return charts
 
 
-def issue_severity_chart(start_date, end_date, group_by, user):
+def issue_severity_chart(start_date, end_date, user):
     categories_name = []
     positive_data = {}
     negative_data = {}
