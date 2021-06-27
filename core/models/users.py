@@ -117,3 +117,17 @@ class PostAboutCategory(Base):
 
     # category = relationship("Category", back_populates="post_is_about_category")
     # post_getter = relationship("Post", back_populates="posts")
+
+class PostDataCategorisedView(Base):
+    __tablename__ = "post_data_categorised_view"
+
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    post_id = Column(Integer, ForeignKey('posts.id'))
+    category_id = Column(Integer, ForeignKey('categories.id'))
+    keywords = Column(String, index=True)
+    text = Column(String, index=True)
+    post_source = Column(String, index=True)
+    region = Column(String, index=True)
+    sentiment_score_value = Column(Float, index=True)
+    sentiment_score = Column(String, index=True)
+    created_at = Column(TIMESTAMP, index=True)

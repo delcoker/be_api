@@ -10,7 +10,7 @@ import base64
 # Test for stream end
 
 import socket
-from pythonping import ping
+# from pythonping import ping
 
 # Import os and dotenv to read data from env file
 import os

@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 
 # Routes
-from routers import auth_routes, group_category_routes, category_routes, scope_routes, user_routes
+from routers import auth_routes, group_category_routes, category_routes, scope_routes, user_routes, graph_routes
 
 # Middleware
 from fastapi.middleware.cors import CORSMiddleware
@@ -46,8 +46,9 @@ app.add_middleware(SessionMiddleware, secret_key=os.getenv('JWT_SECRET_KEY'))
 app.add_middleware(DBSessionMiddleware, db_url=os.getenv('MYSQLURLPATH'))
 
 app.include_router(auth_routes.router)
-app.include_router(group_category_routes.router)
 app.include_router(category_routes.router)
+app.include_router(graph_routes.router)
+app.include_router(group_category_routes.router)
 app.include_router(scope_routes.router)
 app.include_router(user_routes.router)
 
