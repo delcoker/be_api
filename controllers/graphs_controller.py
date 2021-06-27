@@ -237,8 +237,8 @@ def issue_severity_chart(start_date, end_date, group_by, user):
     sql = "SELECT categories.category_name, COUNT(post_id) as 'importance', sentiment_score " \
           "FROM post_data_categorised_view " \
           "JOIN categories ON post_data_categorised_view.category_id = categories.id " \
-          "WHERE user_id = {} AND created_at between '{}' and '{}' GROUP BY categories.category_name, sentiment_score, {} " \
-          "ORDER BY importance DESC".format(user.id, start_date, end_date, group_by)
+          "WHERE user_id = {} AND created_at between '{}' and '{}' GROUP BY categories.category_name, sentiment_score " \
+          "ORDER BY importance DESC".format(user.id, start_date, end_date)
 
     issue_severity_data = engine.execute(sql)
 
