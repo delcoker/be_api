@@ -99,7 +99,7 @@ def positive_negative_chart(date_format, start_date, end_date, group_by):
         # negative_array_data.append(0) if date in negative_data else negative_array_data.append(negative_data[date])
     # return positive_array_data
 
-    chart = {"type": 'area'}
+    chart = {"type": 'area', 'zoomType': 'xy'}
     series = [{"name": 'Positive', "data": positive_array_data}, {"name": 'Negative', "data": negative_array_data}, {"name": 'Neutral', "data": neutral_series_data}]
     title = {"text": 'Conversation Types'}
     xAxis = {"categories": dates}
@@ -148,7 +148,7 @@ def daily_conversations_chart(date_format, start_date, end_date, group_by):
         categories.append(date)
         data.append(conversation_count)
 
-    chart = {"type": 'spline'}
+    chart = {"type": 'spline', 'zoomType': 'xy'}
     series = [{"name": 'Total Conversations', "data": data}]
     title = {"text": 'Total Conversations'}
     xAxis = {"categories": categories}
