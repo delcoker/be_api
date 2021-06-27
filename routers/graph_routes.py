@@ -23,9 +23,15 @@ async def get_db():
         db.close()
 
 
-@router.post("/")
+@router.post("/collected_conversations")
 def get_graphs(start_date: datetime = Form(...), end_date: datetime = Form(...), granularity: str = Form(...), db: Session = Depends(get_db)):
     graph_result = graphs_controller.daily_collected_conversations(db, start_date, end_date, granularity)
+    return graph_result
+
+
+@router.post("/collected_sentiment_types")
+def get_graphs(start_date: datetime = Form(...), end_date: datetime = Form(...), granularity: str = Form(...)):
+    graph_result = graphs_controller.positive_negative_conversations(start_date, end_date, granularity)
     return graph_result
 
 

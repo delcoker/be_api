@@ -50,11 +50,18 @@ def daily_collected_conversations(db: Session, start_date: str, end_date: str, g
 
     conversation_data = daily_conversations_chart(date_format, start_date, end_date, group_by_clause)
 
-    sentiment_data = positive_negative_chart(date_format, start_date, end_date, group_by_clause)
-    # there is sth wrong with this chart... not coming to mind now.. regarding the granularity
-
-    charts = {"charts": [conversation_data, sentiment_data]}
+    charts = {"charts": [conversation_data]}
     # charts = {"charts": [render_dict, render_dict]}
+    return charts
+
+
+def positive_negative_conversations(start_date: str, end_date: str, granularity: str):
+    date_format, group_by_clause = get_date_granularity(granularity)
+
+    sentiment_data = positive_negative_chart(date_format, start_date, end_date, group_by_clause)
+
+    charts = {"charts": [sentiment_data]}
+
     return charts
 
 
@@ -105,17 +112,17 @@ def positive_negative_chart(date_format, start_date, end_date, group_by):
               {"name": 'Neutral', "data": neutral_series_data}]
     title = {"text": 'Conversation Types'}
     xAxis = {"categories": dates}
-    tooltip = getToolTipFormat()
-    plotOptions = getPlotOptions()
+    tooltip = get_tool_tip_format()
+    plot_options = get_plot_options()
     exporting = {'enabled': True}
 
     sentiment_data = dict(id="total_conversations", chart=chart, series=series,
-                          title=title, xAxis=xAxis, tooltip=tooltip, plotOptions=plotOptions,
+                          title=title, xAxis=xAxis, tooltip=tooltip, plotOptions=plot_options,
                           exporting=exporting)
     return sentiment_data
 
 
-def getPlotOptions():
+def get_plot_options():
     return {
         'series': {
             'marker': {
@@ -130,7 +137,7 @@ def getPlotOptions():
     }
 
 
-def getToolTipFormat():
+def get_tool_tip_format():
     return {
         "headerFormat": '<span style="font-size:10px">{point.key}</span><table>',
         "pointFormat": '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
@@ -159,7 +166,7 @@ def daily_conversations_chart(date_format, start_date, end_date, group_by):
     series = [{"name": 'Total Conversations', "data": data}]
     title = {"text": 'Total Conversations'}
     xAxis = {"categories": categories}
-    plotOptions = getPlotOptions()
+    plotOptions = get_plot_options()
     exporting = {'enabled': True}
 
     conversation_data = dict(id=1, chart=chart, series=series,
