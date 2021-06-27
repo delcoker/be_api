@@ -192,16 +192,22 @@ def get_group_category(db: Session, token: str, group_category_id: int):
     return db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id, users.GroupCategory.user_id == user.id).first()
 
 
-def update_group_category(db: Session, group_category_id: int, group_category_name: str):
-    result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).update({
+def update_group_category(db: Session, group_category_id: int, group_category_name: str, token:str):
+    user = get_current_user(db, token)
+    result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id, users.GroupCategory.user_id == user.id).update({
         "group_category_name": group_category_name
     })
     db.commit()
     return result
 
 
-def delete_group_category(db: Session, group_category_id: int):
-    # get_current_user(db, token)
-    result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).delete()
-    db.commit()
-    return result
+def delete_group_category(db: Session, group_category_id: int, token:str):
+    min_amount = 2
+    get_current_user(db, token)
+    group_categories = get_group_categories(db, token)
+    if len(group_categories) >= min_amount:
+        result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).delete()
+        db.commit()
+        return result
+    else:
+        return min_amount
