@@ -100,7 +100,9 @@ def positive_negative_chart(date_format, start_date, end_date, group_by):
     # return positive_array_data
 
     chart = {"type": 'area', 'zoomType': 'xy'}
-    series = [{"name": 'Positive', "data": positive_array_data}, {"name": 'Negative', "data": negative_array_data}, {"name": 'Neutral', "data": neutral_series_data}]
+    series = [{"name": 'Positive', "data": positive_array_data},
+              {"name": 'Negative', "data": negative_array_data},
+              {"name": 'Neutral', "data": neutral_series_data}]
     title = {"text": 'Conversation Types'}
     xAxis = {"categories": dates}
     tooltip = getToolTipFormat()
@@ -118,6 +120,11 @@ def getPlotOptions():
         'series': {
             'marker': {
                 'enabled': False
+            }
+        },
+        'line': {
+            'marker': {
+                'enabled': True
             }
         }
     }
