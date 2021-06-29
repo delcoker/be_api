@@ -103,6 +103,28 @@ def get_plot_options():
             'marker': {
                 'enabled': True
             }
+        },
+        # "bar": {
+        #     "stacking": "percent"
+        # }
+    }
+
+
+def get_stacked_bar_plot_options():
+    return {
+
+        'series': {
+            'marker': {
+                'enabled': False
+            }
+        },
+        'line': {
+            'marker': {
+                'enabled': True
+            }
+        },
+        "bar": {
+            "stacking": "percent"
         }
     }
 
@@ -273,7 +295,7 @@ def issue_severity_chart(start_date, end_date, user):
     title = {"text": 'Topic Severity'}
     xAxis = {"categories": categories_name}
     tooltip = get_tool_tip_format()
-    plot_options = get_plot_options()
+    plot_options = get_stacked_bar_plot_options()
     exporting = {'enabled': True}
 
     issue_severity_data_chart = dict(id="issue_of_severity", chart=chart, series=series,
