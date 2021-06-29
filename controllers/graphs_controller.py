@@ -38,7 +38,7 @@ def positive_negative_conversations(db: Session, start_date: str, end_date: str,
     return charts
 
 
-def positive_negative_chart(date_format, start_date, end_date, group_by, user):
+def positive_negative_chart(date_format, start_date, end_date, group_by_clause, user):
     dates = []
     positive_data = {}
     negative_data = {}
@@ -46,10 +46,13 @@ def positive_negative_chart(date_format, start_date, end_date, group_by, user):
     positive_array_data = []
     negative_array_data = []
     neutral_series_data = []
-    sentiment_data = engine.execute(
-        "SELECT DATE_FORMAT(created_at, '" + date_format + "') AS date, sentiment_score as 'sentiment', COUNT(post_id)  as 'count'" + \
-        " FROM post_data_categorised_view WHERE user_id = " + str(user.id) + " AND created_at between '" + str(start_date) + "' and '" + str(
-            end_date) + "' GROUP BY sentiment_score, " + group_by + " ORDER BY " + group_by + " DESC")
+
+    sql = "SELECT {} AS date, sentiment_score as 'sentiment', COUNT(post_id) as 'count' " \
+          "FROM post_data_categorised_view " \
+          "WHERE user_id = {} AND created_at between '{}' and '{}' " \
+          "GROUP BY sentiment_score, {}".format(date_format, user.id, start_date, end_date, group_by_clause)
+
+    sentiment_data = engine.execute(sql)
 
     for date, sentiment, count in sentiment_data:
         if date not in dates:
@@ -140,13 +143,13 @@ def get_tool_tip_format():
     }
 
 
-def daily_conversations_chart(date_format, start_date, end_date, group_by, user):
+def daily_conversations_chart(date_format, start_date, end_date, group_by_clause, user):
     categories = []
     data = []
-    sql = "SELECT DATE_FORMAT(created_at, '{}') AS date, COUNT(post_id) as 'Data' " \
+    sql = "SELECT {} AS date, COUNT(post_id) as 'Data' " \
           "FROM post_data_categorised_view " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
-          "GROUP BY  + {}".format(date_format, user.id, start_date, end_date, group_by)
+          "GROUP BY {}".format(date_format, user.id, start_date, end_date, group_by_clause)
 
     conversations_data = engine.execute(sql)
 
@@ -167,16 +170,19 @@ def daily_conversations_chart(date_format, start_date, end_date, group_by, user)
     return conversation_data
 
 
-def get_date_granularity(granularity):
+def get_date_granularity(granularity, ):
     if granularity == 'year':
-        date_format = '%Y'
+        date_format = 'DATE_FORMAT(created_at, "%Y")'
         group_by = "YEAR(created_at)"
     elif granularity == 'month':
-        date_format = '%b %Y'
-        group_by = "MONTH(created_at), YEAR(created_at)"
+        date_format = 'DATE_FORMAT(created_at, "%b %Y")'
+        group_by = "YEAR(created_at), MONTH(created_at)"
+    elif granularity == 'day':
+        date_format = 'DATE_FORMAT(created_at, "%d %b %Y")'
+        group_by = "YEAR(created_at), MONTH(created_at), DAY(created_at)"
     else:
-        date_format = '%d %b %Y'
-        group_by = "DAY(created_at), MONTH(created_at), YEAR(created_at)"
+        date_format = "(CONCAT('Week ',WEEK(created_at, 3) - WEEK(created_at - INTERVAL DAY(created_at) - 1 DAY, 3) + 1, ' ', DATE_FORMAT(created_at, '%b %Y')))"
+        group_by = " YEAR(created_at), MONTH(created_at)"
 
     return date_format, group_by
 
@@ -185,7 +191,8 @@ def highlights(db: Session, start_date, end_date, token: str):
     user = get_current_user(db, token)
     sql = "SELECT sentiment_score, COUNT(post_id) as count " \
           "FROM post_data_categorised_view " \
-          "WHERE user_id = {} AND created_at between '{}' and '{}' GROUP BY sentiment_score;".format(user.id, start_date, end_date)
+          "WHERE user_id = {} AND created_at between '{}' and '{}' " \
+          "GROUP BY sentiment_score;".format(user.id, start_date, end_date)
 
     highlights_query = engine.execute(sql)
 
@@ -212,7 +219,8 @@ def issue_of_importance_chart(start_date, end_date, user):
     sql = "SELECT categories.category_name, COUNT(post_id) as 'importance' " \
           "FROM post_data_categorised_view " \
           "JOIN categories ON post_data_categorised_view.category_id = categories.id " \
-          "WHERE user_id = {} AND created_at between '{}' and '{}' GROUP BY categories.category_name " \
+          "WHERE user_id = {} AND created_at between '{}' and '{}' " \
+          "GROUP BY categories.category_name " \
           "ORDER BY importance DESC".format(user.id, start_date, end_date)
 
     issue_data = engine.execute(sql)
@@ -257,7 +265,8 @@ def issue_severity_chart(start_date, end_date, user):
     sql = "SELECT categories.category_name, COUNT(post_id) as 'importance', sentiment_score " \
           "FROM post_data_categorised_view " \
           "JOIN categories ON post_data_categorised_view.category_id = categories.id " \
-          "WHERE user_id = {} AND created_at between '{}' and '{}' GROUP BY categories.category_name, sentiment_score " \
+          "WHERE user_id = {} AND created_at between '{}' and '{}' " \
+          "GROUP BY categories.category_name, sentiment_score " \
           "ORDER BY importance DESC".format(user.id, start_date, end_date)
 
     issue_severity_data = engine.execute(sql)
