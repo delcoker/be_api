@@ -81,7 +81,7 @@ class Rules:
                     "Cannot add rules (HTTP {}): {}".format(
                         response.status_code, response.text)
                 )
-            print(json.dumps(response.json()))
+            print("new_rules=", json.dumps(response.json()))
 
     @staticmethod
     def match_similar_scope_to_multiple_users_and_sanitize_map(scopes):
@@ -95,8 +95,7 @@ class Rules:
                         scope_row.user_id)  # if map has scope just concat user
                     # print(scope_map[sanitized_scope])
                 else:
-                    scope_map[sanitized_scope] = str(
-                        scope_row.user_id)  # else create an index for the scope with the user id
+                    scope_map[sanitized_scope] = str(scope_row.user_id)  # else create an index for the scope with the user id
         return scope_map  # return scope map
 
     @staticmethod

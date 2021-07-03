@@ -52,6 +52,15 @@ def get_category(db: Session, token: str, category_id: int):
 
 # Update a particular category
 def update_category(db: Session, category_id: str, category_name: str, group_category_id: int, keywords: str):
+    keyword_list = keywords.split(',')
+    new_keyword_list = []
+    for keyword in keyword_list:
+        keywrd = keyword.lower().strip()
+        if len(keywrd) > 2:
+            new_keyword_list.append(keywrd)
+
+    keywords = ",".join(new_keyword_list)
+
     result = db.query(users.Category).filter(users.Category.id == category_id).update({
         "group_category_id": group_category_id,
         "category_name": category_name
