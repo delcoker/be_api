@@ -38,8 +38,8 @@ class MyTwitter(Rules):
         self.request_wait_time = 180
         try:
             with db():
-                self.keywords = db.session.query(users.Keyword).join(users.Category).all()
-                print(self.keywords)
+                self.keywords = db.session.query(users.Keyword)  # .join(users.Category).all()
+                # print(self.keywords)
                 # exit()
         except Exception as e:
             # print("NOT saved")
@@ -138,7 +138,7 @@ class MyTwitter(Rules):
             user_fields = "&user.fields=name,username,location,url,public_metrics,entities,protected,verified,withheld"
 
             url = base_url + tweet_fields + user_fields + expansions  # + place_fields
-            print(url)
+            # print(url)
 
             response = requests.get(url, headers=headers, stream=True)
             print(response)

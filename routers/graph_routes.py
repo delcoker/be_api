@@ -53,13 +53,14 @@ def get_issue_of_severity_chart(req: Request, start_date: datetime = Form(...), 
     graph_result = graphs_controller.issue_of_severity(db, start_date, end_date, req.headers['token'])
     return graph_result
 
-@router.post("/word/cloud/for/tweets")#req: Request,
-def get_word_cloud_for_tweets(start_date: datetime = Form(...), end_date: datetime = Form(...), db: Session = Depends(get_db)):
-    graph_result = graphs_controller.get_word_cloud_for_tweets(db, start_date, end_date)#, req.headers['token']
+
+@router.post("/word_cloud/tweets")
+def get_word_cloud_for_tweets(req: Request, start_date: datetime = Form(...), end_date: datetime = Form(...), db: Session = Depends(get_db)):
+    graph_result = graphs_controller.get_word_cloud_for_tweets(db, start_date, end_date, req.headers['token'])
     return graph_result
 
 
-@router.post("/word/cloud/for/keywords")
+@router.post("/word_cloud/keywords")
 def get_word_cloud_for_keywords(start_date: datetime = Form(...), end_date: datetime = Form(...), db: Session = Depends(get_db)):
     graph_result = graphs_controller.get_word_cloud_for_keywords(db, start_date, end_date)
     return graph_result
