@@ -70,6 +70,7 @@ def positive_negative_chart(date_format, start_date, end_date, group_by_clause, 
             negative_data[date] = count
         elif sentiment == "NEUTRAL":
             neutral_dict[date] = count
+
     for date in dates:
         if date in positive_data:
             positive_array_data.append(positive_data[date])
@@ -327,13 +328,14 @@ def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token
           "FROM {} " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' ".format(view_in_use, user.id, start_date, end_date)
 
+    tweet_data = engine.execute(sql)
+
     frequencies = {}
 
     regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
 
     regex = "^[A-Za-z0-9_-]*$"
 
-    tweet_data = engine.execute(sql)
     for text in tweet_data:
         word_array_dirty = str(text.text).split()
         word_array = []
@@ -349,6 +351,16 @@ def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token
                 frequencies[word] = 1
 
     frequency_values = frequencies.values()
+
+    if len(frequency_values) < 1:
+        return [{'text': "Nothing", 'value': 100, },
+                {'text': "here", 'value': 75, },
+                {'text': "yet", 'value': 59, },
+                {'text': "so", 'value': 100, },
+                {'text': "chill", 'value': 111, },
+                {'text': "ha ha ha", 'value': 20, },
+                ]
+
     frequency_median = statistics.median(frequency_values)
     frequency_mode = statistics.mode(frequency_values)
     frequency_mean = statistics.mode(frequency_values)
@@ -361,7 +373,7 @@ def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token
 
     frequency_threshold = statistics.mean([val for val in frequency_values if val > frequency_threshold])
 
-    return {k: v for (k, v) in frequencies.items() if v > frequency_threshold}
+    return [{'text': k, 'value': v} for (k, v) in frequencies.items() if v > frequency_threshold]
 
 # def get_word_cloud_for_keywords(db: Session, start_date: str, end_date: str): #, token: str
 #     # user = get_current_user(db, token)
