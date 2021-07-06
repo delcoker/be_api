@@ -6,7 +6,7 @@ from fastapi_sqlalchemy import db
 import os
 
 # custom
-from core.models import users
+from core.models import schema
 
 
 class Rules:
@@ -52,7 +52,7 @@ class Rules:
         # delete rules
         self.delete_all_rules(headers, rules)
         with db():
-            scopes = db.session.query(users.Scope).all()
+            scopes = db.session.query(schema.Scope).all()
             # Put scopes in map to group users with same scopes
             scope_map = self.match_similar_scope_to_multiple_users_and_sanitize_map(scopes)
             swap_scope_map = self.swap_key_values_dict(scope_map)

@@ -17,13 +17,13 @@ import os
 from dotenv import load_dotenv
 
 # custom
-from core.models import users
+from core.models import schema
 
 # from controllers.crud import get_current_user
 from queue import Queue
 import threading
 from dependency.vader_sentiment_api import SentimentApi
-from requests.exceptions import ProxyError, Timeout, ConnectionError, ChunkedEncodingError
+
 import time
 from controllers.rules_controller import Rules
 
@@ -38,8 +38,10 @@ class MyTwitter(Rules):
         self.request_wait_time = 180
         try:
             with db():
-                self.keywords = db.session.query(users.Keyword)  # .join(users.Category).all()
-                # print(self.keywords)
+                self.keywords = db.session.query(schema.Keyword, schema.Category, schema.GroupCategory) \
+                    .join(schema.Category, schema.Keyword.category_id == schema.Category.id) \
+                    .join(schema.GroupCategory, schema.GroupCategory.id == schema.Category.group_category_id).all()
+                print(self.keywords[0].GroupCategory)
                 # exit()
         except Exception as e:
             # print("NOT saved")
@@ -85,27 +87,28 @@ class MyTwitter(Rules):
             # print(f"Tagging {post_to_categorize.text}")
 
             for keyword_record in self.keywords:
-                # print(f"checking for {keyword_record.keywords}") #should not do all this if keywords are saved properly -> check later
-                keyword_list = keyword_record.keywords.split(",")
-                # print(keyword_list)
-                for keyword in keyword_list:
-                    keyword = str.encode(keyword.lower().strip())
-                    # print(keyword, post_to_categorize.text.lower())  #
-                    if keyword != b'' and keyword.lower().strip() in post_to_categorize.text.lower():
-                        db_categorization = users.PostAboutCategory(
-                            post_id=post_to_categorize.id,
-                            category_id=keyword_record.category_id
-                        )
-                        # print('categorized', keyword, post_to_categorize.id)
-                        try:
-                            with db():
-                                db.session.add(db_categorization)
-                                db.session.commit()
-                                db.session.refresh(db_categorization)
-                        except Exception as e:
-                            print("Could not categorize post")
-                            print(e)
-                        break
+
+                if keyword_record.GroupCategory.user_id == post_to_categorize.user_id:
+                    keyword_list = keyword_record.Keyword.keywords.split(",")
+                    # print(keyword_list)
+                    for keyword in keyword_list:
+                        keyword = str.encode(keyword.lower().strip())
+                        # print(keyword, post_to_categorize.text.lower())  #
+                        if keyword != b'' and keyword.lower().strip() in post_to_categorize.text.lower():
+                            db_categorization = schema.PostAboutCategory(
+                                post_id=post_to_categorize.id,
+                                category_id=keyword_record.Keyword.category_id
+                            )
+                            # print('categorized', keyword, post_to_categorize.id)
+                            try:
+                                with db():
+                                    db.session.add(db_categorization)
+                                    db.session.commit()
+                                    db.session.refresh(db_categorization)
+                            except Exception as e:
+                                print("Could not categorize post")
+                                print(e)
+                            break
             # print(f"Finished attempt to categorize {post_to_categorize.text}")
 
     # Code for generating bearer token
@@ -132,10 +135,13 @@ class MyTwitter(Rules):
         count = 1
         while True:
             base_url = "https://api.twitter.com/2/tweets/search/stream?"
-            tweet_fields = "tweet.fields=author_id,created_at,entities,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld"
-            place_fields = "&place.fields=contained_within,country,country_code,full_name,geo,id,name,place_type"
+            # tweet_fields = "tweet.fields=author_id,created_at,entities,id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld"
+            tweet_fields = "tweet.fields=created_at,id,lang,source"
+            # place_fields = "&place.fields=contained_within,country,country_code,full_name,geo,id,name,place_type"
             expansions = "&expansions=author_id"
-            user_fields = "&user.fields=name,username,location,url,public_metrics,entities,protected,verified,withheld"
+            user_fields = "&user.fields=name,username,location"
+
+            # "tweet.fields=created_at & expansions = author_id & user.fields = created_at"
 
             url = base_url + tweet_fields + user_fields + expansions  # + place_fields
             # print(url)
@@ -172,7 +178,7 @@ class MyTwitter(Rules):
                 # print(f"Scoring {post_to_score.id}")
                 result = SentimentApi().getSentiment(str(post_to_score.text))
 
-                db_sentiment = users.PostSentimentScore(
+                db_sentiment = schema.PostSentimentScore(
                     post_id=post_to_score.id,
                     sentiment=result["sentiment"],
                     score=result["score"]
@@ -187,7 +193,7 @@ class MyTwitter(Rules):
                     print(e)
                 # print(f"Scored {post_to_score.id}")
 
-    def store_streams(self):  # , token: str, db: Session = Depends(get_db)
+    def store_streams(self):
         print("store streams method")
         while True:
             stream_results = self.stream_queue.get()
@@ -195,12 +201,11 @@ class MyTwitter(Rules):
                 user_location = ''
                 if "location" in stream_results["includes"]["users"][0]:
                     user_location = stream_results["includes"]["users"][0]["location"]
-                    # put this in a queue and try to split and get right location
 
                 # Split user ids that are returned from twitter
                 user_ids = stream_results['matching_rules'][0]["tag"].split(",")
                 for user_id in user_ids:
-                    db_stream = users.Post(
+                    db_stream = schema.Post(
                         user_id=user_id,
                         source_name="twitter",
                         data_id=stream_results["data"]["id"],

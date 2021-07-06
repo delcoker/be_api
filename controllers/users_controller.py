@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 # Custom
 # from controllers import rules_controller
 from core.models.database import SessionLocal
-from core.models import users
+from core.models import schema
 # from controllers.crud import get_current_user
 
 # from rules_controller import Rules
@@ -50,8 +50,8 @@ def get_db():
 
 # Update a scope
 def update_user(db: Session, user_id: int, f_name: str, l_name: str, phone: str):
-    result = db.query(users.User) \
-        .filter(users.User.id == user_id) \
+    result = db.query(schema.User) \
+        .filter(schema.User.id == user_id) \
         .update({"first_name": f_name,
                  "last_name": l_name,
                  "phone": phone})

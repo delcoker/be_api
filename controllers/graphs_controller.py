@@ -20,7 +20,7 @@ def get_db():
         db.close()
 
 
-view_in_use = 'post_data_categorised_view_2'
+view_in_use = 'post_data_categorised_view'
 
 
 def daily_collected_conversations(db: Session, start_date: str, end_date: str, granularity: str, token: str):
