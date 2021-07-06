@@ -11,7 +11,7 @@ from starlette.requests import Request
 router = APIRouter(
     prefix="/graphs",
     tags=["Graphs"],
-    # dependencies=[Depends(get_user_token)]
+    dependencies=[Depends(get_user_token)]
 )
 
 
