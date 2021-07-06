@@ -5,6 +5,10 @@ from sqlalchemy.orm import Session
 # Custom
 from core.models.database import SessionLocal, engine
 from controllers.crud import get_current_user
+import re
+import statistics
+
+import stop_words
 
 
 # Dependency
@@ -14,6 +18,9 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+view_in_use = 'post_data_categorised_view'
 
 
 def daily_collected_conversations(db: Session, start_date: str, end_date: str, granularity: str, token: str):
@@ -48,9 +55,9 @@ def positive_negative_chart(date_format, start_date, end_date, group_by_clause, 
     neutral_series_data = []
 
     sql = "SELECT {} AS date, sentiment_score as 'sentiment', COUNT(post_id) as 'count' " \
-          "FROM post_data_categorised_view " \
+          "FROM {} " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
-          "GROUP BY sentiment_score, {}".format(date_format, user.id, start_date, end_date, group_by_clause)
+          "GROUP BY sentiment_score, {}".format(date_format, view_in_use, user.id, start_date, end_date, group_by_clause)
 
     sentiment_data = engine.execute(sql)
 
@@ -63,6 +70,7 @@ def positive_negative_chart(date_format, start_date, end_date, group_by_clause, 
             negative_data[date] = count
         elif sentiment == "NEUTRAL":
             neutral_dict[date] = count
+
     for date in dates:
         if date in positive_data:
             positive_array_data.append(positive_data[date])
@@ -147,9 +155,9 @@ def daily_conversations_chart(date_format, start_date, end_date, group_by_clause
     categories = []
     data = []
     sql = "SELECT {} AS date, COUNT(post_id) as 'Data' " \
-          "FROM post_data_categorised_view " \
+          "FROM {} " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
-          "GROUP BY {}".format(date_format, user.id, start_date, end_date, group_by_clause)
+          "GROUP BY {}".format(date_format, view_in_use, user.id, start_date, end_date, group_by_clause)
 
     conversations_data = engine.execute(sql)
 
@@ -190,9 +198,9 @@ def get_date_granularity(granularity, ):
 def highlights(db: Session, start_date, end_date, token: str):
     user = get_current_user(db, token)
     sql = "SELECT sentiment_score, COUNT(post_id) as count " \
-          "FROM post_data_categorised_view " \
+          "FROM {} " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
-          "GROUP BY sentiment_score;".format(user.id, start_date, end_date)
+          "GROUP BY sentiment_score;".format(view_in_use, user.id, start_date, end_date)
 
     highlights_query = engine.execute(sql)
 
@@ -217,11 +225,11 @@ def issue_of_importance_chart(start_date, end_date, user):
     category_names = []
     importance = []
     sql = "SELECT categories.category_name, COUNT(post_id) as 'importance' " \
-          "FROM post_data_categorised_view " \
-          "JOIN categories ON post_data_categorised_view.category_id = categories.id " \
+          "FROM {} " \
+          "JOIN categories ON {}.category_id = categories.id " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
           "GROUP BY categories.category_name " \
-          "ORDER BY importance DESC".format(user.id, start_date, end_date)
+          "ORDER BY importance DESC".format(view_in_use, view_in_use, user.id, start_date, end_date)
 
     issue_data = engine.execute(sql)
 
@@ -263,11 +271,11 @@ def issue_severity_chart(start_date, end_date, user):
     neutral_series_data = []
 
     sql = "SELECT categories.category_name, COUNT(post_id) as 'importance', sentiment_score " \
-          "FROM post_data_categorised_view " \
-          "JOIN categories ON post_data_categorised_view.category_id = categories.id " \
+          "FROM {} " \
+          "JOIN categories ON {}.category_id = categories.id " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
           "GROUP BY categories.category_name, sentiment_score " \
-          "ORDER BY importance DESC".format(user.id, start_date, end_date)
+          "ORDER BY importance DESC".format(view_in_use, view_in_use, user.id, start_date, end_date)
 
     issue_severity_data = engine.execute(sql)
 
@@ -311,3 +319,66 @@ def issue_severity_chart(start_date, end_date, user):
                                      title=title, xAxis=xAxis, tooltip=tooltip, plotOptions=plot_options,
                                      exporting=exporting)
     return issue_severity_data_chart
+
+
+def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token: str):
+    user = get_current_user(db, token)
+
+    sql = "SELECT text " \
+          "FROM {} " \
+          "WHERE user_id = {} AND created_at between '{}' and '{}' ".format(view_in_use, user.id, start_date, end_date)
+
+    tweet_data = engine.execute(sql)
+
+    frequencies = {}
+
+    regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
+
+    regex = "^[A-Za-z0-9_-]*$"
+
+    for text in tweet_data:
+        word_array_dirty = str(text.text).split()
+        word_array = []
+
+        for word in word_array_dirty:
+            if len(word.strip()) > 3 and word.strip() not in stop_words.stop_words and re.search(regex, word):
+                word_array.append(word.lower())
+
+        for word in word_array:
+            if word in frequencies:
+                frequencies[word] = frequencies[word] + 1
+            else:
+                frequencies[word] = 1
+
+    frequency_values = frequencies.values()
+
+    if len(frequency_values) < 1:
+        return [{'text': "Nothing", 'value': 100, },
+                {'text': "here", 'value': 75, },
+                {'text': "yet", 'value': 59, },
+                {'text': "so", 'value': 100, },
+                {'text': "chill", 'value': 111, },
+                {'text': "ha ha ha", 'value': 20, },
+                ]
+
+    frequency_median = statistics.median(frequency_values)
+    frequency_mode = statistics.mode(frequency_values)
+    frequency_mean = statistics.mode(frequency_values)
+
+    frequency_threshold = frequency_median
+    if frequency_mode > frequency_threshold:  # not sure if mode should be used
+        frequency_threshold = frequency_mode
+    if frequency_mean > frequency_threshold:
+        frequency_threshold = frequency_mean
+
+    frequency_threshold = statistics.mean([val for val in frequency_values if val > frequency_threshold])
+
+    return [{'text': k, 'value': v} for (k, v) in frequencies.items() if v > frequency_threshold]
+
+# def get_word_cloud_for_keywords(db: Session, start_date: str, end_date: str): #, token: str
+#     # user = get_current_user(db, token)
+#     sql = "SELECT text " \
+#           "FROM post_data_categorised_view " \
+#           "WHERE user_id = {} AND created_at between '{}' and '{}' ".format(1, start_date, end_date)
+#     sql_data = []
+#     frequencies = {}

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 # Import model and schemas from other folders
-from core.models import users
+from core.models import schema
 from core.models.database import SessionLocal, engine
 
 # Import OAuth2
@@ -56,11 +56,11 @@ def get_password_hash(password):
 #     return db.query(users.User).filter(users.User.email==email)
 
 def get_user_by_email(db: Session, email: str):
-    return db.query(users.User).filter(users.User.email == email).first()
+    return db.query(schema.User).filter(schema.User.email == email).first()
 
 
 def create_user(db: Session, first_name: str, last_name: str, email: str, phone: str, password: str):
-    db_user = users.User(
+    db_user = schema.User(
         first_name=first_name,
         last_name=last_name,
         phone=phone,
@@ -69,7 +69,7 @@ def create_user(db: Session, first_name: str, last_name: str, email: str, phone:
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    db_group_category = users.GroupCategory(
+    db_group_category = schema.GroupCategory(
         user_id=db_user.id,
         group_category_name="Topics"
     )
@@ -144,7 +144,7 @@ def store_user_social_account(db: Session, oauth_token: str, oauth_token_secret:
     if user is None:
         raise credentials_exception
     # return twitter_user_details["oauth_token"]
-    db_social_user = users.SocialAccount(
+    db_social_user = schema.SocialAccount(
         user_id=user.id,
         name=account_name,
         oauth_token=oauth_token,
@@ -158,19 +158,19 @@ def store_user_social_account(db: Session, oauth_token: str, oauth_token_secret:
 
 def get_user(db: Session, user_id: int):
     # return db.query(users.User).filter(users.User.id == user_id).first()
-    return db.query(users.User).filter(users.User.id == user_id).first()
+    return db.query(schema.User).filter(schema.User.id == user_id).first()
 
 
 def get_users(db: Session):  # , skip: int = 0, limit: int = 100
     # Limit and offset works like pagination
     # return db.query(users.User).offset(skip).limit(limit).all()
-    return db.query(users.User).all()
+    return db.query(schema.User).all()
 
 
 # Code for creating group category
 def create_group_category(db: Session, group_category_name: str, token: str):
     user = get_current_user(db, token)
-    db_group_category = users.GroupCategory(
+    db_group_category = schema.GroupCategory(
         user_id=user.id,
         group_category_name=group_category_name
     )
@@ -184,17 +184,17 @@ def create_group_category(db: Session, group_category_name: str, token: str):
 def get_group_categories(db: Session, token: str):
     user = get_current_user(db, token)
     # Limit and offset works like pagination
-    return db.query(users.GroupCategory).filter(users.GroupCategory.user_id == user.id).all()
+    return db.query(schema.GroupCategory).filter(schema.GroupCategory.user_id == user.id).all()
 
 
 def get_group_category(db: Session, token: str, group_category_id: int):
     user = get_current_user(db, token)
-    return db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id, users.GroupCategory.user_id == user.id).first()
+    return db.query(schema.GroupCategory).filter(schema.GroupCategory.id == group_category_id, schema.GroupCategory.user_id == user.id).first()
 
 
 def update_group_category(db: Session, group_category_id: int, group_category_name: str, token:str):
     user = get_current_user(db, token)
-    result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id, users.GroupCategory.user_id == user.id).update({
+    result = db.query(schema.GroupCategory).filter(schema.GroupCategory.id == group_category_id, schema.GroupCategory.user_id == user.id).update({
         "group_category_name": group_category_name
     })
     db.commit()
@@ -206,7 +206,7 @@ def delete_group_category(db: Session, group_category_id: int, token:str):
     get_current_user(db, token)
     group_categories = get_group_categories(db, token)
     if len(group_categories) >= min_amount:
-        result = db.query(users.GroupCategory).filter(users.GroupCategory.id == group_category_id).delete()
+        result = db.query(schema.GroupCategory).filter(schema.GroupCategory.id == group_category_id).delete()
         db.commit()
         return result
     else:

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 # Custom
 from core.models.database import SessionLocal
-from core.models import users
+from core.models import schema
 from controllers.crud import get_current_user
 
 
@@ -20,12 +20,12 @@ def get_db():
 def get_all_categories(db: Session, token: str):
     user = get_current_user(db, token)
     # Limit and offset works like pagination
-    return db.query(users.Category).join(users.GroupCategory).filter(users.GroupCategory.user_id == user.id).all()
+    return db.query(schema.Category).join(schema.GroupCategory).filter(schema.GroupCategory.user_id == user.id).all()
 
 
 # Get all Group Categories
 def create_category(db: Session, category_name: str, group_category_id: int, keywords: str):
-    db_category = users.Category(
+    db_category = schema.Category(
         group_category_id=group_category_id,
         category_name=category_name
     )
@@ -34,7 +34,7 @@ def create_category(db: Session, category_name: str, group_category_id: int, key
     db.refresh(db_category)
 
     # if keywords:
-    db_keywords = users.Keyword(
+    db_keywords = schema.Keyword(
         category_id=db_category.id,
         keywords=keywords
     )
@@ -47,18 +47,27 @@ def create_category(db: Session, category_name: str, group_category_id: int, key
 # Get a specific Category
 def get_category(db: Session, token: str, category_id: int):
     user = get_current_user(db, token)
-    return db.query(users.Category).join(users.GroupCategory).filter(users.Category.id == category_id, users.GroupCategory.user_id == user.id).first()
+    return db.query(schema.Category).join(schema.GroupCategory).filter(schema.Category.id == category_id, schema.GroupCategory.user_id == user.id).first()
 
 
 # Update a particular category
 def update_category(db: Session, category_id: str, category_name: str, group_category_id: int, keywords: str):
-    result = db.query(users.Category).filter(users.Category.id == category_id).update({
+    keyword_list = keywords.split(',')
+    new_keyword_list = []
+    for keyword in keyword_list:
+        keywrd = keyword.lower().strip()
+        if len(keywrd) > 2:
+            new_keyword_list.append(keywrd)
+
+    keywords = ",".join(new_keyword_list)
+
+    result = db.query(schema.Category).filter(schema.Category.id == category_id).update({
         "group_category_id": group_category_id,
         "category_name": category_name
     })
     db.commit()
     if keywords:
-        db.query(users.Keyword).filter(users.Keyword.category_id == category_id).update({
+        db.query(schema.Keyword).filter(schema.Keyword.category_id == category_id).update({
             "keywords": keywords
         })
     db.commit()
@@ -67,7 +76,7 @@ def update_category(db: Session, category_id: str, category_name: str, group_cat
 
 # Delete a particular category
 def delete_category(db: Session, category_id: int):
-    result = db.query(users.Category).filter(
-        users.Category.id == category_id).delete()
+    result = db.query(schema.Category).filter(
+        schema.Category.id == category_id).delete()
     db.commit()
     return result

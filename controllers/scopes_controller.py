@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 # Custom
 from controllers import rules_controller
 from core.models.database import SessionLocal
-from core.models import users
+from core.models import schema
 from controllers.crud import get_current_user
 
 # from rules_controller import Rules
@@ -23,7 +23,7 @@ def get_db():
 # Code for creating group category
 def create_scope(db: Session, scope: str, token: str):
     user = get_current_user(db, token)
-    db_scope = users.Scope(
+    db_scope = schema.Scope(
         user_id=user.id,
         scope=scope
     )
@@ -37,13 +37,13 @@ def create_scope(db: Session, scope: str, token: str):
 # Get all Group Categories
 def get_scopes(db: Session, token: str):
     user = get_current_user(db, token)
-    return db.query(users.Scope).filter(users.Scope.user_id == user.id).all()
+    return db.query(schema.Scope).filter(schema.Scope.user_id == user.id).all()
 
 
 # Get a particular scope
 def get_scope(db: Session, token: str, scope_id: int):
     user = get_current_user(db, token)
-    return db.query(users.Scope).filter(users.Scope.id == scope_id, users.Scope.user_id == user.id).first()
+    return db.query(schema.Scope).filter(schema.Scope.id == scope_id, schema.Scope.user_id == user.id).first()
 
 
 # Update a scope
@@ -64,7 +64,7 @@ def update_scope(db: Session, scope_id: int, scope: str):
     # print(sanitized_list)
     scopes = ",".join(sanitized_list)
 
-    result = db.query(users.Scope).filter(users.Scope.id == scope_id).update({
+    result = db.query(schema.Scope).filter(schema.Scope.id == scope_id).update({
         "scope": scopes
     })
     db.commit()
@@ -75,7 +75,7 @@ def update_scope(db: Session, scope_id: int, scope: str):
 # Delete a scope
 def delete_scope(db: Session, scope_id: int):
     # get_current_user(db, token)
-    result = db.query(users.Scope).filter(users.Scope.id == scope_id).delete()
+    result = db.query(schema.Scope).filter(schema.Scope.id == scope_id).delete()
     db.commit()
     test.set_rules()
     return result

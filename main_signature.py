@@ -12,7 +12,7 @@ from urllib.parse import urlencode, urljoin
 
 from controllers import crud
 from core.schemas import user_schemas
-from core.models import users
+from core.models import schema
 from core.models.database import SessionLocal, engine
 # Import JWT and authentication dependencies needed
 from jose import JWTError, jwt  # Encoding and decoding jwt
@@ -49,7 +49,7 @@ oauth.register(
     api_base_url='https://api.twitter.com/1.1/',
 )
 
-users.Base.metadata.create_all(bind=engine)
+schema.Base.metadata.create_all(bind=engine)
 
 # Creating a fastapi instance
 app = FastAPI()
@@ -116,7 +116,7 @@ def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = 
 
 @app.post("/users/me/", response_model=user_schemas.UserBase)
 def read_users_me(token: user_schemas.Token, db: Session = Depends(get_db)):
-    current_user: users.User = crud.get_current_user(db, token)
+    current_user: schema.User = crud.get_current_user(db, token)
     return current_user
 
 
