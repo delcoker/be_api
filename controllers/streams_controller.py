@@ -1,6 +1,6 @@
 # System Imports
-from fastapi import Depends, HTTPException
-from sqlalchemy.orm import Session
+# from fastapi import Depends, HTTPException
+# from sqlalchemy.orm import Session
 from fastapi_sqlalchemy import db
 
 # Test for stream
@@ -15,17 +15,17 @@ import socket
 # Import os and dotenv to read data from env file
 import os
 from dotenv import load_dotenv
+from dependency.vader_sentiment_api import SentimentApi
 
 # custom
 from core.models import schema
+from controllers.rules_controller import Rules
 
-# from controllers.crud import get_current_user
 from queue import Queue
 import threading
-from dependency.vader_sentiment_api import SentimentApi
 
 import time
-from controllers.rules_controller import Rules
+import ghana_states
 
 load_dotenv()
 
@@ -41,7 +41,11 @@ class MyTwitter(Rules):
                 self.keywords = db.session.query(schema.Keyword, schema.Category, schema.GroupCategory) \
                     .join(schema.Category, schema.Keyword.category_id == schema.Category.id) \
                     .join(schema.GroupCategory, schema.GroupCategory.id == schema.Category.group_category_id).all()
-                print(self.keywords[0].GroupCategory)
+                # print(self.keywords[0].GroupCategory)
+
+                self.countries = [country_tuple.country_name.lower() for country_tuple in db.session.query(schema.Country).all()]
+                self.states = [state_tuple.state_name.lower() for state_tuple in db.session.query(schema.State).all()]
+                # self.delete_this()
                 # exit()
         except Exception as e:
             # print("NOT saved")
@@ -198,9 +202,16 @@ class MyTwitter(Rules):
         while True:
             stream_results = self.stream_queue.get()
             if stream_results:
-                user_location = ''
+                user_location, = ""
+                country_name, state_name, city_name = '', "", ''
                 if "location" in stream_results["includes"]["users"][0]:
                     user_location = stream_results["includes"]["users"][0]["location"]
+
+                    # Todo: location can be done better. This only looks out for Gh location
+                    try:
+                        country_name, state_name, city_name = self.get_locations(user_location)
+                    except:
+                        pass
 
                 # Split user ids that are returned from twitter
                 user_ids = stream_results['matching_rules'][0]["tag"].split(",")
@@ -212,6 +223,12 @@ class MyTwitter(Rules):
                         data_author_id=stream_results["data"]["author_id"],
                         data_user_name=stream_results["includes"]["users"][0]["username"],
                         data_user_location=user_location,
+
+                        # Todo: location can be done better. This only looks out for Gh location
+                        country_name=country_name,
+                        state_name=state_name,
+                        city_name=city_name,
+
                         text=stream_results["data"]["text"],
                         full_object=json.dumps(stream_results, indent=4, sort_keys=True),
                         created_at=stream_results["data"]["created_at"]
@@ -227,3 +244,38 @@ class MyTwitter(Rules):
                     except Exception as e:
                         # print("NOT saved")
                         print(e)
+
+    def get_locations(self, location):
+        location_list = location.lower().split(',')
+        for loc in location_list:
+            if loc in ghana_states.ghana_states.lower():
+                return 'Ghana', loc, ''
+
+        country_name = ''
+        state_name = ''
+        city_name = ''
+
+        for loc in location_list:
+            if loc in self.countries:  # convert country_name to lower case
+                country_name = loc
+            elif loc in self.states:
+                state_name = loc
+            else:
+                city_name = loc
+
+        return country_name, state_name, city_name
+
+    def delete_this(self):
+        country_name = ''
+        state_name = ''
+        city_name = ''
+
+        for loc in ['ghana', 'china']:
+            if loc in self.countries:  # convert country_name to lower case
+                country_name = loc
+            elif loc in self.states:
+                state_name = loc
+            else:
+                city_name = loc
+
+        print(country_name, state_name, city_name)
