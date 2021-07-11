@@ -57,7 +57,7 @@ def positive_negative_chart(date_format, start_date, end_date, group_by_clause, 
     sql = "SELECT {} AS date, sentiment_score as 'sentiment', COUNT(post_id) as 'count' " \
           "FROM {} " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
-          "GROUP BY sentiment_score, {}".format(date_format, view_in_use, user.id, start_date, end_date, group_by_clause)
+          "GROUP BY {}, sentiment_score".format(date_format, view_in_use, user.id, start_date, end_date, group_by_clause)
 
     sentiment_data = engine.execute(sql)
 
@@ -154,7 +154,7 @@ def get_tool_tip_format():
 def daily_conversations_chart(date_format, start_date, end_date, group_by_clause, user):
     categories = []
     data = []
-    sql = "SELECT {} AS date, COUNT(post_id) as 'Data' " \
+    sql = "SELECT {} AS date, COUNT(post_id) as 'data' " \
           "FROM {} " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
           "GROUP BY {}".format(date_format, view_in_use, user.id, start_date, end_date, group_by_clause)
