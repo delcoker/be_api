@@ -42,15 +42,17 @@ class MyTwitter(Rules):
                     .join(schema.Category, schema.Keyword.category_id == schema.Category.id) \
                     .join(schema.GroupCategory, schema.GroupCategory.id == schema.Category.group_category_id).all()
 
-                # comment below out after script run for
                 self.countries = [country_tuple.country_name.lower() for country_tuple in db.session.query(schema.Country).all()]
                 self.states = [state_tuple.state_name.lower() for state_tuple in db.session.query(schema.State).all()]
+
+                # comment below out after script run for
+
                 # not needed # self.cities = [cities_tuple.state_name.lower() for cities_tuple in db.session.query(schema.City).all()]
                 # self.delete_this()
 
-                self.posts_so_far = db.session.query(schema.Post).all()
-                self.delete_this_2()
-                exit()
+                # self.posts_so_far = db.session.query(schema.Post).all()
+                # self.delete_this_2()
+                # exit()
         except Exception as e:
             # print("NOT saved")
             print(e)
@@ -260,12 +262,13 @@ class MyTwitter(Rules):
         city_name = ''
 
         for loc in location_list:
-            if b_any(loc.strip() in countries for countries in self.countries):
-                country_name = loc
-            elif b_any(loc.strip() in states for states in self.states):
-                state_name = loc
-            else:
-                city_name = loc
+            if loc.strip() > 1:
+                if b_any(loc.strip() in countries for countries in self.countries):
+                    country_name = loc
+                elif b_any(loc.strip() in states for states in self.states):
+                    state_name = loc
+                else:
+                    city_name = loc
 
         return country_name, state_name, city_name
 
