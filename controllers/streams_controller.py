@@ -25,7 +25,7 @@ from queue import Queue
 import threading
 
 import time
-import ghana_states
+from builtins import any as b_any
 
 load_dotenv()
 
@@ -41,12 +41,16 @@ class MyTwitter(Rules):
                 self.keywords = db.session.query(schema.Keyword, schema.Category, schema.GroupCategory) \
                     .join(schema.Category, schema.Keyword.category_id == schema.Category.id) \
                     .join(schema.GroupCategory, schema.GroupCategory.id == schema.Category.group_category_id).all()
-                # print(self.keywords[0].GroupCategory)
 
+                # comment below out after script run for
                 self.countries = [country_tuple.country_name.lower() for country_tuple in db.session.query(schema.Country).all()]
                 self.states = [state_tuple.state_name.lower() for state_tuple in db.session.query(schema.State).all()]
+                # not needed # self.cities = [cities_tuple.state_name.lower() for cities_tuple in db.session.query(schema.City).all()]
                 # self.delete_this()
-                # exit()
+
+                self.posts_so_far = db.session.query(schema.Post).all()
+                self.delete_this_2()
+                exit()
         except Exception as e:
             # print("NOT saved")
             print(e)
@@ -247,18 +251,18 @@ class MyTwitter(Rules):
 
     def get_locations(self, location):
         location_list = location.lower().split(',')
-        for loc in location_list:
-            if loc in ghana_states.ghana_states.lower():
-                return 'Ghana', loc, ''
+        # for loc in location_list:
+        #     if loc.strip() in ghana_states.ghana_states.lower():
+        #         return 'Ghana', loc.strip(), ''
 
         country_name = ''
         state_name = ''
         city_name = ''
 
         for loc in location_list:
-            if loc in self.countries:  # convert country_name to lower case
+            if b_any(loc.strip() in countries for countries in self.countries):
                 country_name = loc
-            elif loc in self.states:
+            elif b_any(loc.strip() in states for states in self.states):
                 state_name = loc
             else:
                 city_name = loc
@@ -279,3 +283,38 @@ class MyTwitter(Rules):
                 city_name = loc
 
         print(country_name, state_name, city_name)
+
+    def delete_this_2(self):  # script to split current countries
+        locations_record = [post.data_user_location.lower() for post in self.posts_so_far]  # uk, london
+        post_id = [post.id for post in self.posts_so_far]
+        i = -1
+
+        for location_list in locations_record:
+            locations = location_list.split(",")  # [uk, london]
+            i = i + 1
+
+            country_name = ''
+            state_name = ''
+            city_name = ''
+
+            for location in locations:  # # https://stackoverflow.com/questions/16380326/check-if-substring-is-in-a-list-of-strings
+                if b_any(location.strip() in countries for countries in self.countries):  # b_any(word in x for x in lst)
+                    country_name = location.strip()
+                elif b_any(location.strip() in states for states in self.states):
+                    state_name = location.strip()
+                else:
+                    city_name = location.strip()
+
+            try:
+                with db():
+                    idd = post_id[i]
+                    postt = db.session.query(schema.Post).filter(schema.Post.id == idd).one()
+                    postt.country_name = country_name
+                    postt.state_name = state_name
+                    postt.city_name = city_name
+                    db.session.commit()
+                    db.session.refresh(postt)
+
+            except Exception as e:
+                # print("NOT saved")
+                print(e)
