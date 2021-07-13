@@ -73,6 +73,7 @@ class Keyword(Base):
 
 class LowerCaseText(types.TypeDecorator):
     """ Converts strings to lower case on the way in. """
+    """ NOT IN USE """
 
     impl = types.Text
 
