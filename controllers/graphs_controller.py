@@ -293,17 +293,17 @@ def issue_severity_chart(start_date, end_date, user):
         if category_name in positive_data:
             positive_array_data.append(positive_data[category_name])
         else:
-            positive_array_data.append(0)
+            positive_array_data.append(None)
 
         if category_name in negative_data:
             negative_array_data.append(negative_data[category_name])
         else:
-            negative_array_data.append(0)
+            negative_array_data.append(None)
 
         if category_name in neutral_dict:
             neutral_series_data.append(neutral_dict[category_name])
         else:
-            neutral_series_data.append(0)
+            neutral_series_data.append(None)
 
     chart = {"type": 'bar', 'zoomType': 'xy'}
     series = [{"name": 'Positive', "data": positive_array_data},
@@ -442,7 +442,7 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
 
     sql = "SELECT state, city " \
           "FROM {} " \
-          "WHERE user_id = {} AND created_at between '{}' and '{}' ".format(view_in_use, user.id, start_date, end_date)
+          "WHERE user_id = {} AND created_at BETWEEN '{}' AND '{}' ".format(view_in_use, user.id, start_date, end_date)
 
     tweet_data = engine.execute(sql)
 

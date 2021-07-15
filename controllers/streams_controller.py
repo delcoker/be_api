@@ -71,9 +71,9 @@ class MyTwitter(Rules):
         # create headers
         headers = self.create_headers(os.getenv('TWITTER_BEARER_TOKEN'))
         # get rules
-        # rules = self.get_rules(headers)
+        rules = self.get_rules(headers)
         # delete rules
-        # self.delete_all_rules(headers, rules)
+        self.delete_all_rules(headers, rules)
         # set rules is being called from the rules controller
         self.set_rules()
         # start stream
@@ -208,7 +208,7 @@ class MyTwitter(Rules):
         while True:
             stream_results = self.stream_queue.get()
             if stream_results:
-                user_location, = ""
+                user_location = ""
                 country_name, state_name, city_name = '', "", ''
                 if "location" in stream_results["includes"]["users"][0]:
                     user_location = stream_results["includes"]["users"][0]["location"]
@@ -262,13 +262,13 @@ class MyTwitter(Rules):
         city_name = ''
 
         for loc in location_list:
-            if loc.strip() > 1:
-                if b_any(loc.strip() in countries for countries in self.countries):
-                    country_name = loc
-                elif b_any(loc.strip() in states for states in self.states):
-                    state_name = loc
+            if len(loc.strip()) > 1:
+                if loc.strip() in self.countries:
+                    country_name = loc.strip()
+                elif loc.strip() in self.states:
+                    state_name = loc.strip()
                 else:
-                    city_name = loc
+                    city_name = loc.strip()
 
         return country_name, state_name, city_name
 
