@@ -135,7 +135,11 @@ def get_stacked_bar_plot_options():
             }
         },
         "bar": {
-            "stacking": "percent"
+            "stacking": "percent",
+            'dataLabels': {
+                'enabled': True,
+                'format': '{point.percentage:.0f}%'
+            }
         }
     }
 
