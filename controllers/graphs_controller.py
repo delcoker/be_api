@@ -336,7 +336,7 @@ def ghana_locations(db: Session, start_date, end_date, token: str):  # not teste
     sql = "SELECT categories.category_name, state, city, COUNT(city) as 'city_count' " \
           "FROM {} " \
           "JOIN categories ON {}.category_id = categories.id " \
-          "WHERE user_id = {} AND created_at between '{}' AND '{}' {} " \
+          "WHERE user_id = {} AND created_at between '{}' AND '{}' {}" \
           "GROUP BY categories.category_name, city, 'city_count';".format(view_in_use, view_in_use, user.id, start_date, end_date, country)
 
     locations = engine.execute(sql)
