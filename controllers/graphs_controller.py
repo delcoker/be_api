@@ -3,6 +3,7 @@
 from sqlalchemy.orm import Session
 
 # Custom
+import stop_words_custom
 from core.models.database import SessionLocal, engine
 from controllers.crud import get_current_user
 import re
@@ -439,10 +440,13 @@ def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token
 
     frequency_threshold = statistics.mean([val for val in frequency_values if val > frequency_threshold])
 
-    return [{'text': k, 'value': v} for (k, v) in frequencies.items() if v > frequency_threshold]
+    return {
+        'title': 'tweet words',
+        'value': [{'text': k, 'value': v} for (k, v) in frequencies.items() if v > frequency_threshold]
+    }
 
 
-def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, token: str):  # not tested
+def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, token: str):
     user = get_current_user(db, token)
 
     sql = "SELECT state, city " \
@@ -453,12 +457,16 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
 
     frequencies = {}
 
+    regex = "^[A-Za-z0-9_-]*$"
+
+    all_stop_words = stop_words.stop_words + stop_words_custom.stop_words
+
     for data in tweet_data:
         word_array_dirty = str(data.city).split()
         word_array = []
 
         for word in word_array_dirty:
-            if len(word.strip()) > 3:
+            if len(word.strip()) > 3 and word.strip() not in all_stop_words and re.search(regex, word):
                 word_array.append(word.lower())
 
         for word in word_array:
@@ -478,7 +486,8 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
                 {'text': "ha ha ha", 'value': 20, },
                 ]
 
-    return [{'text': k, 'value': v} for (k, v) in frequencies.items()]
+    return {'title': 'locations',
+            'value': [{'text': k, 'value': v} for (k, v) in frequencies.items()]}
 
 # def get_word_cloud_for_keywords(db: Session, start_date: str, end_date: str): #, token: str
 #     # user = get_current_user(db, token)
