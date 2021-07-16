@@ -108,12 +108,15 @@ def get_plot_options():
     return {
         'series': {
             'marker': {
-                'enabled': False
+                'enabled': True
+            },
+            'dataLabels': {
+                'enabled': True,
             }
         },
-        'line': {
-            'marker': {
-                'enabled': True
+        'area': {
+            'dataLabels': {
+                'enabled': False,
             }
         },
         # "bar": {
@@ -124,10 +127,9 @@ def get_plot_options():
 
 def get_stacked_bar_plot_options():
     return {
-
         'series': {
             'marker': {
-                'enabled': False
+                'enabled': True
             }
         },
         'line': {
@@ -183,7 +185,7 @@ def daily_conversations_chart(date_format, start_date, end_date, group_by_clause
     return conversation_data
 
 
-def get_date_granularity(granularity, ):
+def get_date_granularity(granularity):
     if granularity == 'year':
         date_format = 'DATE_FORMAT(created_at, "%Y")'
         group_by = "YEAR(created_at)"
@@ -195,7 +197,7 @@ def get_date_granularity(granularity, ):
         group_by = "YEAR(created_at), MONTH(created_at), DAY(created_at)"
     else:
         date_format = "(CONCAT('Week ',WEEK(created_at, 3) - WEEK(created_at - INTERVAL DAY(created_at) - 1 DAY, 3) + 1, ' ', DATE_FORMAT(created_at, '%b %Y')))"
-        group_by = " YEAR(created_at), MONTH(created_at)"
+        group_by = " YEAR(created_at), MONTH(created_at), date"
 
     return date_format, group_by
 
