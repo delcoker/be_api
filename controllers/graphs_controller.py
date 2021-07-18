@@ -3,6 +3,7 @@
 from sqlalchemy.orm import Session
 
 # Custom
+import stop_words_custom
 from core.models.database import SessionLocal, engine
 from controllers.crud import get_current_user
 import re
@@ -107,12 +108,15 @@ def get_plot_options():
     return {
         'series': {
             'marker': {
-                'enabled': False
+                'enabled': True
+            },
+            'dataLabels': {
+                'enabled': True,
             }
         },
-        'line': {
-            'marker': {
-                'enabled': True
+        'area': {
+            'dataLabels': {
+                'enabled': False,
             }
         },
         # "bar": {
@@ -123,10 +127,9 @@ def get_plot_options():
 
 def get_stacked_bar_plot_options():
     return {
-
         'series': {
             'marker': {
-                'enabled': False
+                'enabled': True
             }
         },
         'line': {
@@ -182,7 +185,7 @@ def daily_conversations_chart(date_format, start_date, end_date, group_by_clause
     return conversation_data
 
 
-def get_date_granularity(granularity, ):
+def get_date_granularity(granularity):
     if granularity == 'year':
         date_format = 'DATE_FORMAT(created_at, "%Y")'
         group_by = "YEAR(created_at)"
@@ -194,7 +197,7 @@ def get_date_granularity(granularity, ):
         group_by = "YEAR(created_at), MONTH(created_at), DAY(created_at)"
     else:
         date_format = "(CONCAT('Week ',WEEK(created_at, 3) - WEEK(created_at - INTERVAL DAY(created_at) - 1 DAY, 3) + 1, ' ', DATE_FORMAT(created_at, '%b %Y')))"
-        group_by = " YEAR(created_at), MONTH(created_at)"
+        group_by = " YEAR(created_at), MONTH(created_at), date"
 
     return date_format, group_by
 
@@ -439,10 +442,13 @@ def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token
 
     frequency_threshold = statistics.mean([val for val in frequency_values if val > frequency_threshold])
 
-    return [{'text': k, 'value': v} for (k, v) in frequencies.items() if v > frequency_threshold]
+    return {
+        'title': 'tweet words',
+        'value': [{'text': k, 'value': v} for (k, v) in frequencies.items() if v > frequency_threshold]
+    }
 
 
-def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, token: str):  # not tested
+def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, token: str):
     user = get_current_user(db, token)
 
     sql = "SELECT state, city " \
@@ -453,12 +459,16 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
 
     frequencies = {}
 
+    regex = "^[A-Za-z0-9_-]*$"
+
+    all_stop_words = stop_words.stop_words + stop_words_custom.stop_words
+
     for data in tweet_data:
         word_array_dirty = str(data.city).split()
         word_array = []
 
         for word in word_array_dirty:
-            if len(word.strip()) > 3:
+            if len(word.strip()) > 3 and word.strip() not in all_stop_words and re.search(regex, word):
                 word_array.append(word.lower())
 
         for word in word_array:
@@ -478,7 +488,8 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
                 {'text': "ha ha ha", 'value': 20, },
                 ]
 
-    return [{'text': k, 'value': v} for (k, v) in frequencies.items()]
+    return {'title': 'locations',
+            'value': [{'text': k, 'value': v} for (k, v) in frequencies.items()]}
 
 # def get_word_cloud_for_keywords(db: Session, start_date: str, end_date: str): #, token: str
 #     # user = get_current_user(db, token)
