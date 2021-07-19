@@ -42,9 +42,10 @@ class MyTwitter(Rules):
                     .join(schema.Category, schema.Keyword.category_id == schema.Category.id) \
                     .join(schema.GroupCategory, schema.GroupCategory.id == schema.Category.group_category_id).all()
 
-                self.countries = [country_tuple.country_name.lower() for country_tuple in db.session.query(schema.Country).all()]
+                self.countries = [country_tuple.country_name.lower() for country_tuple in
+                                  db.session.query(schema.Country).all()]
                 self.states = [state_tuple.state_name.lower() for state_tuple in db.session.query(schema.State).all()]
-
+                self.cities = [state_tuple.city_name.lower() for state_tuple in db.session.query(schema.City).all()]
                 # comment below out after script run for
 
                 # not needed # self.cities = [cities_tuple.state_name.lower() for cities_tuple in db.session.query(schema.City).all()]
@@ -267,8 +268,18 @@ class MyTwitter(Rules):
                     country_name = loc.strip()
                 elif loc.strip() in self.states:
                     state_name = loc.strip()
-                else:
+                elif loc.strip() in self.cities:
                     city_name = loc.strip()
+                    if not state_name:
+                        sql = "SELECT states.state_name AS 'state', countries.country_name as 'country' " \
+                              "FROM states " \
+                              "INNER JOIN countries ON states.country_id = countries.id" \
+                              "INNER JOIN cities on cities.state_id = states.id" \
+                              "WHERE city_name = '{}'".format(city_name)
+
+                        result = engine.execute(sql)
+                        state_name = result.state
+                        country_name = result.country
 
         return country_name, state_name, city_name
 
@@ -301,7 +312,8 @@ class MyTwitter(Rules):
             city_name = ''
 
             for location in locations:  # # https://stackoverflow.com/questions/16380326/check-if-substring-is-in-a-list-of-strings
-                if b_any(location.strip() in countries for countries in self.countries):  # b_any(word in x for x in lst)
+                if b_any(
+                        location.strip() in countries for countries in self.countries):  # b_any(word in x for x in lst)
                     country_name = location.strip()
                 elif b_any(location.strip() in states for states in self.states):
                     state_name = location.strip()
