@@ -1,4 +1,6 @@
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, TIMESTAMP
+from abc import ABC, ABCMeta
+
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, TIMESTAMP, types
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -69,6 +71,40 @@ class Keyword(Base):
     category = relationship("Category", back_populates="keywords")
 
 
+class LowerCaseText(types.TypeDecorator):
+    """ Converts strings to lower case on the way in. """
+    """ NOT IN USE """
+
+    impl = types.Text
+
+    def process_bind_param(self, value, dialect):
+        return value.lower()
+
+
+class Country(Base):
+    __tablename__ = "countries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    country_name = Column(LowerCaseText, index=True)
+    country_initials = Column(Integer, index=True)
+
+
+class State(Base):
+    __tablename__ = "states"
+
+    id = Column(Integer, primary_key=True, index=True)
+    state_name = Column(LowerCaseText, index=True)
+    country_id = Column(Integer, index=True)
+
+
+class City(Base):
+    __tablename__ = "cities"
+
+    id = Column(Integer, primary_key=True, index=True)
+    city_name = Column(LowerCaseText, index=True)
+    state_id = Column(Integer, index=True)
+
+
 class Scope(Base):
     __tablename__ = "scopes"
 
@@ -91,6 +127,9 @@ class Post(Base):
     data_user_location = Column(String, index=True)
     text = Column(String, index=True)
     full_object = Column(String, index=True)
+    country_name = Column(String, index=True)
+    state_name = Column(String, index=True)
+    city_name = Column(String, index=True)
     created_at = Column(TIMESTAMP, index=True)
 
     post_getter = relationship("User", back_populates="posts")
@@ -117,6 +156,7 @@ class PostAboutCategory(Base):
 
     # category = relationship("Category", back_populates="post_is_about_category")
     # post_getter = relationship("Post", back_populates="posts")
+
 
 class PostDataCategorisedView(Base):
     __tablename__ = "post_data_categorised_view"

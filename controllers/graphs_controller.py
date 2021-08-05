@@ -3,6 +3,7 @@
 from sqlalchemy.orm import Session
 
 # Custom
+import stop_words_custom
 from core.models.database import SessionLocal, engine
 from controllers.crud import get_current_user
 import re
@@ -57,7 +58,7 @@ def positive_negative_chart(date_format, start_date, end_date, group_by_clause, 
     sql = "SELECT {} AS date, sentiment_score as 'sentiment', COUNT(post_id) as 'count' " \
           "FROM {} " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
-          "GROUP BY sentiment_score, {}".format(date_format, view_in_use, user.id, start_date, end_date, group_by_clause)
+          "GROUP BY {}, sentiment_score".format(date_format, view_in_use, user.id, start_date, end_date, group_by_clause)
 
     sentiment_data = engine.execute(sql)
 
@@ -107,12 +108,15 @@ def get_plot_options():
     return {
         'series': {
             'marker': {
-                'enabled': False
+                'enabled': True
+            },
+            'dataLabels': {
+                'enabled': True,
             }
         },
-        'line': {
-            'marker': {
-                'enabled': True
+        'area': {
+            'dataLabels': {
+                'enabled': False,
             }
         },
         # "bar": {
@@ -123,10 +127,9 @@ def get_plot_options():
 
 def get_stacked_bar_plot_options():
     return {
-
         'series': {
             'marker': {
-                'enabled': False
+                'enabled': True
             }
         },
         'line': {
@@ -135,7 +138,11 @@ def get_stacked_bar_plot_options():
             }
         },
         "bar": {
-            "stacking": "percent"
+            "stacking": "percent",
+            'dataLabels': {
+                'enabled': True,
+                'format': '{point.percentage:.0f}%'
+            }
         }
     }
 
@@ -154,7 +161,7 @@ def get_tool_tip_format():
 def daily_conversations_chart(date_format, start_date, end_date, group_by_clause, user):
     categories = []
     data = []
-    sql = "SELECT {} AS date, COUNT(post_id) as 'Data' " \
+    sql = "SELECT {} AS date, COUNT(post_id) as 'data' " \
           "FROM {} " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
           "GROUP BY {}".format(date_format, view_in_use, user.id, start_date, end_date, group_by_clause)
@@ -178,7 +185,7 @@ def daily_conversations_chart(date_format, start_date, end_date, group_by_clause
     return conversation_data
 
 
-def get_date_granularity(granularity, ):
+def get_date_granularity(granularity):
     if granularity == 'year':
         date_format = 'DATE_FORMAT(created_at, "%Y")'
         group_by = "YEAR(created_at)"
@@ -190,7 +197,7 @@ def get_date_granularity(granularity, ):
         group_by = "YEAR(created_at), MONTH(created_at), DAY(created_at)"
     else:
         date_format = "(CONCAT('Week ',WEEK(created_at, 3) - WEEK(created_at - INTERVAL DAY(created_at) - 1 DAY, 3) + 1, ' ', DATE_FORMAT(created_at, '%b %Y')))"
-        group_by = " YEAR(created_at), MONTH(created_at)"
+        group_by = " YEAR(created_at), MONTH(created_at), date"
 
     return date_format, group_by
 
@@ -293,6 +300,68 @@ def issue_severity_chart(start_date, end_date, user):
         if category_name in positive_data:
             positive_array_data.append(positive_data[category_name])
         else:
+            positive_array_data.append(None)
+
+        if category_name in negative_data:
+            negative_array_data.append(negative_data[category_name])
+        else:
+            negative_array_data.append(None)
+
+        if category_name in neutral_dict:
+            neutral_series_data.append(neutral_dict[category_name])
+        else:
+            neutral_series_data.append(None)
+
+    chart = {"type": 'bar', 'zoomType': 'xy'}
+    series = [{"name": 'Positive', "data": positive_array_data},
+              {"name": 'Negative', "data": negative_array_data},
+              {"name": 'Neutral', "data": neutral_series_data}]
+    title = {"text": 'Topic Severity'}
+    xAxis = {"categories": categories_name}
+    tooltip = get_tool_tip_format()
+    plot_options = get_stacked_bar_plot_options()
+    exporting = {'enabled': True}
+
+    issue_severity_data_chart = dict(id="issue_of_severity", chart=chart, series=series,
+                                     title=title, xAxis=xAxis, tooltip=tooltip, plotOptions=plot_options,
+                                     exporting=exporting)
+    return issue_severity_data_chart
+
+
+def ghana_locations(db: Session, start_date, end_date, token: str):  # not tested
+    user = get_current_user(db, token)
+    country = "AND country = 'ghana'"
+    country = ""
+    categories_name = []
+    positive_data = {}
+    negative_data = {}
+    neutral_dict = {}
+    positive_array_data = []
+    negative_array_data = []
+    neutral_series_data = []
+
+    sql = "SELECT categories.category_name, state, city, COUNT(city) as 'city_count' " \
+          "FROM {} " \
+          "JOIN categories ON {}.category_id = categories.id " \
+          "WHERE user_id = {} AND created_at between '{}' AND '{}' {}" \
+          "GROUP BY categories.category_name, city, 'city_count';".format(view_in_use, view_in_use, user.id, start_date, end_date, country)
+
+    locations = engine.execute(sql)
+
+    for category_name, importance, sentiment_score in locations:
+        if category_name not in categories_name:
+            categories_name.append(category_name)
+        if sentiment_score == "POSITIVE":
+            positive_data[category_name] = importance
+        elif sentiment_score == "NEGATIVE":
+            negative_data[category_name] = importance
+        elif sentiment_score == "NEUTRAL":
+            neutral_dict[category_name] = importance
+
+    for category_name in categories_name:
+        if category_name in positive_data:
+            positive_array_data.append(positive_data[category_name])
+        else:
             positive_array_data.append(0)
 
         if category_name in negative_data:
@@ -309,16 +378,16 @@ def issue_severity_chart(start_date, end_date, user):
     series = [{"name": 'Positive', "data": positive_array_data},
               {"name": 'Negative', "data": negative_array_data},
               {"name": 'Neutral', "data": neutral_series_data}]
-    title = {"text": 'Topic Severity'}
+    title = {"text": 'Location'}
     xAxis = {"categories": categories_name}
     tooltip = get_tool_tip_format()
     plot_options = get_stacked_bar_plot_options()
     exporting = {'enabled': True}
 
-    issue_severity_data_chart = dict(id="issue_of_severity", chart=chart, series=series,
-                                     title=title, xAxis=xAxis, tooltip=tooltip, plotOptions=plot_options,
-                                     exporting=exporting)
-    return issue_severity_data_chart
+    locations_chart = dict(id="issue_of_severity", chart=chart, series=series,
+                           title=title, xAxis=xAxis, tooltip=tooltip, plotOptions=plot_options,
+                           exporting=exporting)
+    return locations_chart
 
 
 def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token: str):
@@ -373,7 +442,54 @@ def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token
 
     frequency_threshold = statistics.mean([val for val in frequency_values if val > frequency_threshold])
 
-    return [{'text': k, 'value': v} for (k, v) in frequencies.items() if v > frequency_threshold]
+    return {
+        'title': 'tweet words',
+        'value': [{'text': k, 'value': v} for (k, v) in frequencies.items() if v > frequency_threshold]
+    }
+
+
+def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, token: str):
+    user = get_current_user(db, token)
+
+    sql = "SELECT state, city " \
+          "FROM {} " \
+          "WHERE user_id = {} AND created_at BETWEEN '{}' AND '{}' ".format(view_in_use, user.id, start_date, end_date)
+
+    tweet_data = engine.execute(sql)
+
+    frequencies = {}
+
+    regex = "^[A-Za-z0-9_-]*$"
+
+    all_stop_words = stop_words.stop_words + stop_words_custom.stop_words
+
+    for data in tweet_data:
+        word_array_dirty = str(data.city).split()
+        word_array = []
+
+        for word in word_array_dirty:
+            if len(word.strip()) > 3 and word.strip() not in all_stop_words and re.search(regex, word):
+                word_array.append(word.lower())
+
+        for word in word_array:
+            if word in frequencies:
+                frequencies[word] = frequencies[word] + 1
+            else:
+                frequencies[word] = 1
+
+    frequency_values = frequencies.values()
+
+    if len(frequency_values) < 1:
+        return [{'text': "Nothing", 'value': 100, },
+                {'text': "here", 'value': 75, },
+                {'text': "yet", 'value': 59, },
+                {'text': "so", 'value': 100, },
+                {'text': "chill", 'value': 111, },
+                {'text': "ha ha ha", 'value': 20, },
+                ]
+
+    return {'title': 'locations',
+            'value': [{'text': k, 'value': v} for (k, v) in frequencies.items()]}
 
 # def get_word_cloud_for_keywords(db: Session, start_date: str, end_date: str): #, token: str
 #     # user = get_current_user(db, token)

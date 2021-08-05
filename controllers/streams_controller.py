@@ -1,6 +1,6 @@
 # System Imports
-from fastapi import Depends, HTTPException
-from sqlalchemy.orm import Session
+# from fastapi import Depends, HTTPException
+# from sqlalchemy.orm import Session
 from fastapi_sqlalchemy import db
 
 # Test for stream
@@ -15,17 +15,17 @@ import socket
 # Import os and dotenv to read data from env file
 import os
 from dotenv import load_dotenv
+from dependency.vader_sentiment_api import SentimentApi
 
 # custom
 from core.models import schema
+from controllers.rules_controller import Rules
 
-# from controllers.crud import get_current_user
 from queue import Queue
 import threading
-from dependency.vader_sentiment_api import SentimentApi
 
 import time
-from controllers.rules_controller import Rules
+from builtins import any as b_any
 
 load_dotenv()
 
@@ -41,7 +41,18 @@ class MyTwitter(Rules):
                 self.keywords = db.session.query(schema.Keyword, schema.Category, schema.GroupCategory) \
                     .join(schema.Category, schema.Keyword.category_id == schema.Category.id) \
                     .join(schema.GroupCategory, schema.GroupCategory.id == schema.Category.group_category_id).all()
-                print(self.keywords[0].GroupCategory)
+
+                self.countries = [country_tuple.country_name.lower() for country_tuple in
+                                  db.session.query(schema.Country).all()]
+                self.states = [state_tuple.state_name.lower() for state_tuple in db.session.query(schema.State).all()]
+                self.cities = [state_tuple.city_name.lower() for state_tuple in db.session.query(schema.City).all()]
+                # comment below out after script run for
+
+                # not needed # self.cities = [cities_tuple.state_name.lower() for cities_tuple in db.session.query(schema.City).all()]
+                # self.delete_this()
+
+                # self.posts_so_far = db.session.query(schema.Post).all()
+                # self.delete_this_2()
                 # exit()
         except Exception as e:
             # print("NOT saved")
@@ -61,9 +72,9 @@ class MyTwitter(Rules):
         # create headers
         headers = self.create_headers(os.getenv('TWITTER_BEARER_TOKEN'))
         # get rules
-        # rules = self.get_rules(headers)
+        rules = self.get_rules(headers)
         # delete rules
-        # self.delete_all_rules(headers, rules)
+        self.delete_all_rules(headers, rules)
         # set rules is being called from the rules controller
         self.set_rules()
         # start stream
@@ -198,9 +209,16 @@ class MyTwitter(Rules):
         while True:
             stream_results = self.stream_queue.get()
             if stream_results:
-                user_location = ''
+                user_location = ""
+                country_name, state_name, city_name = '', "", ''
                 if "location" in stream_results["includes"]["users"][0]:
                     user_location = stream_results["includes"]["users"][0]["location"]
+
+                    # Todo: location can be done better. This only looks out for Gh location
+                    try:
+                        country_name, state_name, city_name = self.get_locations(user_location)
+                    except:
+                        pass
 
                 # Split user ids that are returned from twitter
                 user_ids = stream_results['matching_rules'][0]["tag"].split(",")
@@ -212,6 +230,12 @@ class MyTwitter(Rules):
                         data_author_id=stream_results["data"]["author_id"],
                         data_user_name=stream_results["includes"]["users"][0]["username"],
                         data_user_location=user_location,
+
+                        # Todo: location can be done better. This only looks out for Gh location
+                        country_name=country_name,
+                        state_name=state_name,
+                        city_name=city_name,
+
                         text=stream_results["data"]["text"],
                         full_object=json.dumps(stream_results, indent=4, sort_keys=True),
                         created_at=stream_results["data"]["created_at"]
@@ -227,3 +251,85 @@ class MyTwitter(Rules):
                     except Exception as e:
                         # print("NOT saved")
                         print(e)
+
+    def get_locations(self, location):
+        location_list = location.lower().split(',')
+        # for loc in location_list:
+        #     if loc.strip() in ghana_states.ghana_states.lower():
+        #         return 'Ghana', loc.strip(), ''
+
+        country_name = ''
+        state_name = ''
+        city_name = ''
+
+        for loc in location_list:
+            if len(loc.strip()) > 1:
+                if loc.strip() in self.countries:
+                    country_name = loc.strip()
+                elif loc.strip() in self.states:
+                    state_name = loc.strip()
+                elif loc.strip() in self.cities:
+                    city_name = loc.strip()
+                    if not state_name:
+                        sql = "SELECT states.state_name AS 'state', countries.country_name as 'country' " \
+                              "FROM states " \
+                              "INNER JOIN countries ON states.country_id = countries.id" \
+                              "INNER JOIN cities on cities.state_id = states.id" \
+                              "WHERE city_name = '{}'".format(city_name)
+
+                        result = engine.execute(sql)
+                        state_name = result.state
+                        country_name = result.country
+
+        return country_name, state_name, city_name
+
+    def delete_this(self):
+        country_name = ''
+        state_name = ''
+        city_name = ''
+
+        for loc in ['ghana', 'china']:
+            if loc in self.countries:  # convert country_name to lower case
+                country_name = loc
+            elif loc in self.states:
+                state_name = loc
+            else:
+                city_name = loc
+
+        print(country_name, state_name, city_name)
+
+    def delete_this_2(self):  # script to split current countries
+        locations_record = [post.data_user_location.lower() for post in self.posts_so_far]  # uk, london
+        post_id = [post.id for post in self.posts_so_far]
+        i = -1
+
+        for location_list in locations_record:
+            locations = location_list.split(",")  # [uk, london]
+            i = i + 1
+
+            country_name = ''
+            state_name = ''
+            city_name = ''
+
+            for location in locations:  # # https://stackoverflow.com/questions/16380326/check-if-substring-is-in-a-list-of-strings
+                if b_any(
+                        location.strip() in countries for countries in self.countries):  # b_any(word in x for x in lst)
+                    country_name = location.strip()
+                elif b_any(location.strip() in states for states in self.states):
+                    state_name = location.strip()
+                else:
+                    city_name = location.strip()
+
+            try:
+                with db():
+                    idd = post_id[i]
+                    postt = db.session.query(schema.Post).filter(schema.Post.id == idd).one()
+                    postt.country_name = country_name
+                    postt.state_name = state_name
+                    postt.city_name = city_name
+                    db.session.commit()
+                    db.session.refresh(postt)
+
+            except Exception as e:
+                # print("NOT saved")
+                print(e)
