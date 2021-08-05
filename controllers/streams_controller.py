@@ -1,6 +1,8 @@
 # System Imports
 # from fastapi import Depends, HTTPException
 # from sqlalchemy.orm import Session
+import datetime
+
 from fastapi_sqlalchemy import db
 
 # Test for stream
@@ -103,7 +105,13 @@ class MyTwitter(Rules):
                     keyword_list = keyword_record.Keyword.keywords.split(",")
                     # print(keyword_list)
                     for keyword in keyword_list:
-                        keyword = str.encode(keyword.lower().strip())
+                        keyword = str.encode(keyword)
+                        # print(type(keyword))
+                        # keyword = keyword.decode(encoding="UTF-8")
+                        # print(keyword)
+                        # print(keyword != b'')
+                        # print(post_to_categorize.text.lower())
+                        # keyword = keyword.encode("ascii")
                         # print(keyword, post_to_categorize.text.lower())  #
                         if keyword != b'' and keyword.lower().strip() in post_to_categorize.text.lower():
                             db_categorization = schema.PostAboutCategory(
@@ -223,6 +231,9 @@ class MyTwitter(Rules):
                 # Split user ids that are returned from twitter
                 user_ids = stream_results['matching_rules'][0]["tag"].split(",")
                 for user_id in user_ids:
+
+                    date_created = self.to_db_format(stream_results["data"]["created_at"])
+
                     db_stream = schema.Post(
                         user_id=user_id,
                         source_name="twitter",
@@ -238,7 +249,7 @@ class MyTwitter(Rules):
 
                         text=stream_results["data"]["text"],
                         full_object=json.dumps(stream_results, indent=4, sort_keys=True),
-                        created_at=stream_results["data"]["created_at"]
+                        created_at=date_created
                     )
                     try:
                         with db():
@@ -251,6 +262,10 @@ class MyTwitter(Rules):
                     except Exception as e:
                         # print("NOT saved")
                         print(e)
+
+    def to_db_format(self, iso_format):
+        from_iso_format = datetime.datetime.fromisoformat(iso_format[:-1])
+        return from_iso_format.strftime("%Y-%m-%d %H:%M:%S")
 
     def get_locations(self, location):
         location_list = location.lower().split(',')

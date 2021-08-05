@@ -10,6 +10,8 @@ SQLALCHEMY_DATABASE_URL = os.getenv('MYSQLURLPATH')
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
+    convert_unicode=True,
+    echo=False
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
