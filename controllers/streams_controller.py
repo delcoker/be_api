@@ -12,12 +12,13 @@ import base64
 # Test for stream end
 
 import socket
-# from pythonping import ping
+from pythonping import ping
 
 # Import os and dotenv to read data from env file
 import os
 from dotenv import load_dotenv
 from dependency.vader_sentiment_api import SentimentApi
+from core.models.database import engine
 
 # custom
 from core.models import schema
@@ -225,7 +226,8 @@ class MyTwitter(Rules):
                     # Todo: location can be done better. This only looks out for Gh location
                     try:
                         country_name, state_name, city_name = self.get_locations(user_location)
-                    except:
+                    except Exception as e:
+                        print(e)
                         pass
 
                 # Split user ids that are returned from twitter
@@ -288,13 +290,13 @@ class MyTwitter(Rules):
                     if not state_name:
                         sql = "SELECT states.state_name AS 'state', countries.country_name as 'country' " \
                               "FROM states " \
-                              "INNER JOIN countries ON states.country_id = countries.id" \
-                              "INNER JOIN cities on cities.state_id = states.id" \
+                              "INNER JOIN countries ON states.country_id = countries.id " \
+                              "INNER JOIN cities on cities.state_id = states.id " \
                               "WHERE city_name = '{}'".format(city_name)
 
-                        result = engine.execute(sql)
-                        state_name = result.state
-                        country_name = result.country
+                        result = engine.execute(sql).first()
+                        state_name = result[0]
+                        country_name = result[1]
 
         return country_name, state_name, city_name
 

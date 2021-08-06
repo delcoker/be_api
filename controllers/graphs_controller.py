@@ -450,10 +450,13 @@ def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token
 
 def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, token: str):
     user = get_current_user(db, token)
+    gh_locations = 'AND country = "ghana"'
 
     sql = "SELECT state, city " \
           "FROM {} " \
-          "WHERE user_id = {} AND created_at BETWEEN '{}' AND '{}' ".format(view_in_use, user.id, start_date, end_date)
+          "WHERE user_id = {} " \
+          "AND (state <> '' or city <> '') " \
+          "AND created_at BETWEEN '{}' AND '{}' ".format(view_in_use, user.id, start_date, end_date)
 
     tweet_data = engine.execute(sql)
 
@@ -464,7 +467,9 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
     all_stop_words = stop_words.stop_words + stop_words_custom.stop_words
 
     for data in tweet_data:
-        word_array_dirty = str(data.city).split()
+        word_state = data.state.decode()
+        word_city = data.city.decode()
+        word_array_dirty = str(word_state).split() + str(word_city).split()
         word_array = []
 
         for word in word_array_dirty:
