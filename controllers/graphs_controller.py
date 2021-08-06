@@ -450,12 +450,12 @@ def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token
 
 def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, token: str):
     user = get_current_user(db, token)
-    gh_locations = 'AND country = "ghana"'
 
     sql = "SELECT state, city " \
           "FROM {} " \
           "WHERE user_id = {} " \
           "AND (state <> '' or city <> '') " \
+          'AND country = "ghana" ' \
           "AND created_at BETWEEN '{}' AND '{}' ".format(view_in_use, user.id, start_date, end_date)
 
     tweet_data = engine.execute(sql)
@@ -469,11 +469,11 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
     for data in tweet_data:
         word_state = data.state.decode()
         word_city = data.city.decode()
-        word_array_dirty = str(word_state).split() + str(word_city).split()
+        word_array_dirty = [str(word_state)] + [str(word_city)]
         word_array = []
 
         for word in word_array_dirty:
-            if len(word.strip()) > 3 and word.strip() not in all_stop_words and re.search(regex, word):
+            if len(word.strip()) > 3 and word.strip() not in all_stop_words:  # and re.search(regex, word):
                 word_array.append(word.lower())
 
         for word in word_array:
@@ -493,7 +493,7 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
                 {'text': "ha ha ha", 'value': 20, },
                 ]
 
-    return {'title': 'locations',
+    return {'title': '🇬🇭 .gh locations',
             'value': [{'text': k, 'value': v} for (k, v) in frequencies.items()]}
 
 # def get_word_cloud_for_keywords(db: Session, start_date: str, end_date: str): #, token: str
