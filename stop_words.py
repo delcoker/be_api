@@ -180,5 +180,20 @@ stop_words = [
     "????????????????",
     "",
     "&gt;",
-    "??'"
+    "??'",
+    "come",
+    "also",
+    "what",
+    "every",
+    "must",
+    "take",
+    "tell",
+    "still"
+    "they",
+    "lets",
+    "will",
+    "this",
+    "they",
+    "like",
+    "know"
 ]
