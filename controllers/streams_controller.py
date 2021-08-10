@@ -12,7 +12,7 @@ import base64
 # Test for stream end
 
 import socket
-from pythonping import ping
+# from pythonping import ping
 
 # Import os and dotenv to read data from env file
 import os
@@ -270,6 +270,7 @@ class MyTwitter(Rules):
         return from_iso_format.strftime("%Y-%m-%d %H:%M:%S")
 
     def get_locations(self, location):
+        location = location.replace("-", ',')
         location_list = location.lower().split(',')
         # for loc in location_list:
         #     if loc.strip() in ghana_states.ghana_states.lower():
@@ -287,6 +288,10 @@ class MyTwitter(Rules):
                     state_name = loc.strip()
                 elif loc.strip() in self.cities:
                     city_name = loc.strip()
+
+                    if city_name is not None and city_name in 'greater accra':
+                        city_name = 'greater accra'
+
                     if not state_name:
                         sql = "SELECT states.state_name AS 'state', countries.country_name as 'country' " \
                               "FROM states " \
