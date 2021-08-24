@@ -103,8 +103,10 @@ class MyTwitter(Rules):
             for keyword_record in self.keywords:
 
                 if keyword_record.GroupCategory.user_id == post_to_categorize.user_id:
+                    # print(keyword_record.Keyword.keywords)
+                    if not keyword_record.Keyword.keywords:
+                        break
                     keyword_list = keyword_record.Keyword.keywords.split(",")
-                    # print(keyword_list)
                     for keyword in keyword_list:
                         keyword = str.encode(keyword)
                         # print(type(keyword))
