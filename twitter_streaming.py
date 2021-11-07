@@ -10,8 +10,10 @@ from starlette.middleware.sessions import SessionMiddleware
 load_dotenv()
 
 app = FastAPI()
-# Created a session middleware  
+# Created a session middleware
 app.add_middleware(SessionMiddleware, secret_key=os.getenv('SECRET_KEY'))
 app.add_middleware(DBSessionMiddleware, db_url=os.getenv('MYSQLURLPATH'))
+
+print("Starting streamer => ")
 
 twitter_streamer = MyTwitter()
