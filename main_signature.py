@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from urllib.parse import urlencode, urljoin
 
 from controllers import crud
-from core.schemas import user_schemas
+from core.schemas import user_schemas_dto
 from core.models import schema
 from core.models.database import SessionLocal, engine
 # Import JWT and authentication dependencies needed
@@ -34,7 +34,7 @@ import string
 
 from fastapi.middleware.cors import CORSMiddleware
 
-from core.schemas.user_schemas import Url
+from core.schemas.user_schemas_dto import Url
 
 authenticate_url = 'https://api.twitter.com/oauth/authenticate'
 authorize_url = 'https://api.twitter.com/oauth/authorize'
@@ -95,9 +95,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 #     return current_user
 
 
-@app.post("/login", response_model=user_schemas.Logged_In_User)
+@app.post("/login", response_model=user_schemas_dto.Logged_In_User)
 def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    user: user_schemas.Logged_In_User = crud.authenticate_user(
+    user: user_schemas_dto.Logged_In_User = crud.authenticate_user(
         db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -114,14 +114,14 @@ def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = 
     return user
 
 
-@app.post("/users/me/", response_model=user_schemas.UserBase)
-def read_users_me(token: user_schemas.Token, db: Session = Depends(get_db)):
+@app.post("/users/me/", response_model=user_schemas_dto.UserBase)
+def read_users_me(token: user_schemas_dto.Token, db: Session = Depends(get_db)):
     current_user: schema.User = crud.get_current_user(db, token)
     return current_user
 
 
-@app.post("/register", response_model=user_schemas.UserBase)
-def create_user(user: user_schemas.UserCreate, db: Session = Depends(get_db)):
+@app.post("/register", response_model=user_schemas_dto.UserBase)
+def create_user(user: user_schemas_dto.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -200,13 +200,13 @@ async def auth_via_twitter(token: str = Form(...), oauth_token: str = Form(...),
     return db_social_account
 
 
-@app.get("/users/", response_model=List[user_schemas.User])
+@app.get("/users/", response_model=List[user_schemas_dto.User])
 def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     users = crud.get_users(db, skip=skip, limit=limit)
     return users
 
 
-@app.get("/users/{user_id}", response_model=user_schemas.User)
+@app.get("/users/{user_id}", response_model=user_schemas_dto.User)
 def read_user(user_id: int, db: Session = Depends(get_db)):
     db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:

@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from pydantic import BaseModel
-from core.schemas.categories import Category
+from core.schemas.categories_dto import CategoryDto
 
 
 class GroupCategoryBase(BaseModel):
@@ -21,7 +21,7 @@ class GroupCategory(GroupCategoryBase):
 
 
 class GroupCategoryList(GroupCategory):
-    categories: List[Category] = []
+    categories: List[CategoryDto] = []
 
     class Config:
         orm_mode = True

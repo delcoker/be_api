@@ -7,7 +7,7 @@ from starlette.requests import Request
 from controllers import scopes_controller
 from dependency.dependencies import get_user_token
 from core.models.database import SessionLocal
-from core.schemas import scopes
+from core.schemas import scopes_dto
 
 router = APIRouter(
     prefix="/scopes",
@@ -25,25 +25,24 @@ async def get_db():
         db.close()
 
 
-# Route to store a scope
-@router.post("/create", response_model=scopes.Scope)
-def scope_create(req: Request, scope: str = Form(...), db: Session = Depends(get_db)):
-    db_scope = scopes_controller.create_scope(
-        db, scope, req.headers['token'])
-    if db_scope is None:
-        raise HTTPException(status_code=404, detail="Scope could not be created")
-    return db_scope
-
-
 # Route to get scopes
-@router.get("", response_model=List[scopes.Scope])
+@router.get("", response_model=List[scopes_dto.Scope])
 def get_scopes(req: Request, db: Session = Depends(get_db)):
     all_scopes = scopes_controller.get_scopes(db, req.headers['token'])
     return all_scopes
 
 
+
+# Route to store a scope
+@router.post("/create", response_model=scopes_dto.Scope)
+def scope_create(req: Request, scope: str = Form(...), db: Session = Depends(get_db)):
+    db_scope = scopes_controller.create_scope(db, scope, req.headers['token'])
+    if db_scope is None:
+        raise HTTPException(status_code=404, detail="Scope could not be created")
+    return db_scope
+
 # Get a specified scope
-@router.get("/{scope_id}", response_model=scopes.Scope)
+@router.get("/{scope_id}", response_model=scopes_dto.Scope)
 def read_scope(scope_id: int, req: Request, db: Session = Depends(get_db)):
     db_scope = scopes_controller.get_scope(
         db, req.headers['token'], scope_id=scope_id)

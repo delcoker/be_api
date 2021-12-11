@@ -34,7 +34,7 @@ def create_scope(db: Session, scope: str, token: str):
     return db_scope
 
 
-# Get all Group Categories
+# Get all scopes
 def get_scopes(db: Session, token: str):
     user = get_current_user(db, token)
     return db.query(schema.Scope).filter(schema.Scope.user_id == user.id).all()

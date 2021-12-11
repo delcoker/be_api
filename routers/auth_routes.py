@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 # Custom
 from core.models.database import SessionLocal, engine
 from controllers import crud
-from core.schemas import user_schemas
+from core.schemas import user_schemas_dto
 
 
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('JWT_EXPIRATION_TIME'))
@@ -30,7 +30,7 @@ def test():
     return "OK"
 
 # Create user
-@router.post("/register", response_model=user_schemas.User)
+@router.post("/register", response_model=user_schemas_dto.User)
 def create_user(first_name: str = Form(...), last_name: str = Form(...), email: str = Form(...), phone: str = Form(...), password: str = Form(...),  db: Session = Depends(get_db)):
     db_user = crud.get_user_by_email(db, email=email)
     if db_user:
@@ -40,9 +40,9 @@ def create_user(first_name: str = Form(...), last_name: str = Form(...), email: 
 
 
 # User login
-@router.post("/login", response_model=user_schemas.Logged_In_User)
+@router.post("/login", response_model=user_schemas_dto.Logged_In_User)
 def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    user: user_schemas.Logged_In_User = crud.authenticate_user(
+    user: user_schemas_dto.Logged_In_User = crud.authenticate_user(
         db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(

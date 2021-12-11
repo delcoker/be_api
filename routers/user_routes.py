@@ -7,7 +7,7 @@ from starlette.requests import Request
 from core.models.database import SessionLocal
 from controllers import crud, users_controller
 from dependency.dependencies import get_user_token
-from core.schemas import user_schemas
+from core.schemas import user_schemas_dto
 
 router = APIRouter(
     prefix="/users",
@@ -26,7 +26,7 @@ async def get_db():
 
 
 # Fetch all users
-@router.get("", response_model=List[user_schemas.User])
+@router.get("", response_model=List[user_schemas_dto.User])
 # def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 def get_users(db: Session = Depends(get_db)):
     users = crud.get_users(db)  # skip=skip, limit=limit
@@ -34,13 +34,13 @@ def get_users(db: Session = Depends(get_db)):
 
 
 # Return current user data
-@router.post("/user/me", response_model=user_schemas.User)
+@router.post("/user/me", response_model=user_schemas_dto.User)
 def read_users_me(req: Request, db: Session = Depends(get_db)):
     current_user: users.User = crud.get_current_user(db, req.headers['token'])
     return current_user
 
 
-@router.get("/{user_id}", response_model=user_schemas.User)
+@router.get("/{user_id}", response_model=user_schemas_dto.User)
 def read_user(user_id: int, db: Session = Depends(get_db)):
     db_user = crud.get_user(db, user_id=user_id)
     if db_user is None:
@@ -52,8 +52,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 def update_user(user_id: int, first_name: str = Form(...),
                 last_name: str = Form(...), phone: str = Form(...),
                 db: Session = Depends(get_db)):
-    db_user = users_controller \
-        .update_user(db, user_id, first_name, last_name, phone)
+    db_user = users_controller.update_user(db, user_id, first_name, last_name, phone)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not updated")
     return db_user

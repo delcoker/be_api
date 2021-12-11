@@ -1,5 +1,5 @@
 from typing import List, Optional
-from core.schemas import group_categories
+from core.schemas import group_categories_dto
 from pydantic import BaseModel
 
 
@@ -76,7 +76,7 @@ class Social_User(User):
 
 
 class User_Group_Categories(User):
-    group_categories: List['group_categories.GroupCategory'] = []
+    group_categories: List['group_categories_dto.GroupCategory'] = []
 
     # used to provide configurations to Pydantic
     # read the data even if it is not a dict

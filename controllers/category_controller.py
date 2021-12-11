@@ -1,4 +1,7 @@
 # From system
+# from sqlalchemy import func
+from sqlalchemy import desc
+from sqlalchemy.sql import expression, functions
 from sqlalchemy.orm import Session
 
 # Custom
@@ -20,7 +23,10 @@ def get_db():
 def get_all_categories(db: Session, token: str):
     user = get_current_user(db, token)
     # Limit and offset works like pagination
-    return db.query(schema.Category).join(schema.GroupCategory).filter(schema.GroupCategory.user_id == user.id).all()
+    return db.query(schema.Category) \
+        .join(schema.GroupCategory) \
+        .filter(schema.GroupCategory.user_id == user.id) \
+        .all()
 
 
 # Get all Group Categories
@@ -47,7 +53,11 @@ def create_category(db: Session, category_name: str, group_category_id: int, key
 # Get a specific Category
 def get_category(db: Session, token: str, category_id: int):
     user = get_current_user(db, token)
-    return db.query(schema.Category).join(schema.GroupCategory).filter(schema.Category.id == category_id, schema.GroupCategory.user_id == user.id).first()
+    return db.query(schema.Category) \
+        .join(schema.GroupCategory) \
+        .filter(schema.Category.id == category_id,
+                schema.GroupCategory.user_id == user.id) \
+        .first()
 
 
 # Update a particular category
@@ -61,22 +71,39 @@ def update_category(db: Session, category_id: str, category_name: str, group_cat
 
     keywords = ",".join(new_keyword_list)
 
-    result = db.query(schema.Category).filter(schema.Category.id == category_id).update({
-        "group_category_id": group_category_id,
-        "category_name": category_name
-    })
+    result = db.query(schema.Category) \
+        .filter(schema.Category.id == category_id) \
+        .update({"group_category_id": group_category_id,
+                 "category_name": category_name
+                 })
     db.commit()
     if keywords:
-        db.query(schema.Keyword).filter(schema.Keyword.category_id == category_id).update({
-            "keywords": keywords
-        })
+        db.query(schema.Keyword) \
+            .filter(schema.Keyword.category_id == category_id) \
+            .update({"keywords": keywords})
     db.commit()
     return result
 
 
 # Delete a particular category
 def delete_category(db: Session, category_id: int):
-    result = db.query(schema.Category).filter(
-        schema.Category.id == category_id).delete()
+    result = db.query(schema.Category) \
+        .filter(schema.Category.id == category_id) \
+        .delete()
     db.commit()
     return result
+
+
+# get post regarding the specified category
+def get_category_posts(category_id: int, db: Session):
+    # col_concat = functions.concat("https://www.twitter.com/", # schema.Post.data_user_name).label("link")
+    # col_concat = func.concat("https://www.twitter.com/", schema.Post.data_user_name)
+    return db.query(schema.Post) \
+        .join(schema.PostAboutCategory) \
+        .filter(schema.PostAboutCategory.category_id == category_id) \
+        .order_by(schema.Post.created_at.desc())\
+        .limit(100) \
+        .all() \
+        # .order_by(schema.Post.created_at.desc())
+        #.order_by(desc(schema.Post.created_at))\
+

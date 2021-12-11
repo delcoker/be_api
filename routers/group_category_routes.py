@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 from controllers import crud
-from core.schemas import group_categories
+from core.schemas import group_categories_dto
 from core.models.database import SessionLocal, engine
 from dependency.dependencies import get_user_token
 
@@ -23,7 +23,7 @@ async def get_db():
 
 
 # Route to store group categories
-@router.post("/group/category/create", response_model=group_categories.GroupCategoryList)
+@router.post("/group/category/create", response_model=group_categories_dto.GroupCategoryList)
 def group_category_create(req: Request, group_category_name: str = Form(...), db: Session = Depends(get_db)):
     db_group_category = crud.create_group_category(
         db, group_category_name, req.headers['token'])
@@ -33,14 +33,14 @@ def group_category_create(req: Request, group_category_name: str = Form(...), db
 
 
 # Route to get group categories
-@router.get("/group/categories", response_model=List[group_categories.GroupCategoryList])
+@router.get("/group/categories", response_model=List[group_categories_dto.GroupCategoryList])
 def get_group_categories(req: Request, db: Session = Depends(get_db)):
     group_categories = crud.get_group_categories(db, req.headers['token'])
     return group_categories
 
 
 # Get specified group category
-@router.get("/group/category/{group_category_id}", response_model=group_categories.GroupCategoryList)
+@router.get("/group/category/{group_category_id}", response_model=group_categories_dto.GroupCategoryList)
 def read_group_category(group_category_id: int, req: Request, db: Session = Depends(get_db)):
     db_group_category = crud.get_group_category(
         db, req.headers['token'], group_category_id=group_category_id)
