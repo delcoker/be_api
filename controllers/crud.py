@@ -1,21 +1,21 @@
-from sqlalchemy.orm import Session
-# Import model and schemas from other folders
-from core.models import schema
-from core.models.database import SessionLocal, engine
+# Import os and dotenv to read data from env file
+import os
+from datetime import datetime, timedelta
+from typing import Optional
 
+from dotenv import load_dotenv
+from fastapi import Depends, HTTPException, status, Header
 # Import OAuth2
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 # Import JWT and authentication dependencies needed
 from jose import JWTError, jwt
 # Allowing you to use different hashing algorithms
 from passlib.context import CryptContext
-# Import os and dotenv to read data from env file
-import os
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
 
-from typing import Optional
+# Import model and schemas from other folders
+from core.models import schema
+from core.models.database import SessionLocal
 
 load_dotenv()
 
@@ -51,12 +51,32 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-# Retrieve a user based on their email
-# def get_user(db: Session, email: str):
-#     return db.query(users.User).filter(users.User.email==email)
+# Connection fetch token and verify
+def get_user_token(db: Session = Depends(get_db), token: str = Header(...)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        # return email
+        if email is None:
+            raise credentials_exception
+        token_data = email
+    except JWTError:
+        raise credentials_exception
+    user = get_user_by_email(db, email=token_data)
+    if user is None:
+        raise credentials_exception
+    return user
+
 
 def get_user_by_email(db: Session, email: str):
-    return db.query(schema.User).filter(schema.User.email == email).first()
+    return db.query(schema.User) \
+        .filter(schema.User.email == email) \
+        .first()
 
 
 def create_user(db: Session, first_name: str, last_name: str, email: str, phone: str, password: str):
@@ -100,29 +120,6 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-def get_current_user(db: Session, token):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY,
-                             algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        # return email
-        if email is None:
-            raise credentials_exception
-        # token_data = TokenData(username=username)
-        token_data = email
-    except JWTError:
-        raise credentials_exception
-    user = get_user_by_email(db, email=token_data)
-    if user is None:
-        raise credentials_exception
-    return user
-
-
 def store_user_social_account(db: Session, oauth_token: str, oauth_token_secret: str, token: str, account_name: str):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -158,56 +155,12 @@ def store_user_social_account(db: Session, oauth_token: str, oauth_token_secret:
 
 def get_user(db: Session, user_id: int):
     # return db.query(users.User).filter(users.User.id == user_id).first()
-    return db.query(schema.User).filter(schema.User.id == user_id).first()
+    return db.query(schema.User) \
+        .filter(schema.User.id == user_id) \
+        .first()
 
 
 def get_users(db: Session):  # , skip: int = 0, limit: int = 100
     # Limit and offset works like pagination
     # return db.query(users.User).offset(skip).limit(limit).all()
     return db.query(schema.User).all()
-
-
-# Code for creating group category
-def create_group_category(db: Session, group_category_name: str, token: str):
-    user = get_current_user(db, token)
-    db_group_category = schema.GroupCategory(
-        user_id=user.id,
-        group_category_name=group_category_name
-    )
-    db.add(db_group_category)
-    db.commit()
-    db.refresh(db_group_category)
-    return db_group_category
-
-
-# Get all Group Categories
-def get_group_categories(db: Session, token: str):
-    user = get_current_user(db, token)
-    # Limit and offset works like pagination
-    return db.query(schema.GroupCategory).filter(schema.GroupCategory.user_id == user.id).all()
-
-
-def get_group_category(db: Session, token: str, group_category_id: int):
-    user = get_current_user(db, token)
-    return db.query(schema.GroupCategory).filter(schema.GroupCategory.id == group_category_id, schema.GroupCategory.user_id == user.id).first()
-
-
-def update_group_category(db: Session, group_category_id: int, group_category_name: str, token:str):
-    user = get_current_user(db, token)
-    result = db.query(schema.GroupCategory).filter(schema.GroupCategory.id == group_category_id, schema.GroupCategory.user_id == user.id).update({
-        "group_category_name": group_category_name
-    })
-    db.commit()
-    return result
-
-
-def delete_group_category(db: Session, group_category_id: int, token:str):
-    min_amount = 2
-    get_current_user(db, token)
-    group_categories = get_group_categories(db, token)
-    if len(group_categories) >= min_amount:
-        result = db.query(schema.GroupCategory).filter(schema.GroupCategory.id == group_category_id).delete()
-        db.commit()
-        return result
-    else:
-        return min_amount

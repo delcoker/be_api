@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 
 # Custom
 import stop_words_custom
+from controllers import crud
 from core.models.database import SessionLocal, engine
-from controllers.crud import get_current_user
 import re
 import statistics
 
@@ -25,7 +25,7 @@ view_in_use = 'post_data_categorised_view'
 
 
 def daily_collected_conversations(db: Session, start_date: str, end_date: str, granularity: str, token: str):
-    user = get_current_user(db, token)
+    user = crud.get_user_token(db, token)
     date_format, group_by_clause = get_date_granularity(granularity)
 
     conversation_data = daily_conversations_chart(date_format, start_date, end_date, group_by_clause, user)
@@ -36,7 +36,7 @@ def daily_collected_conversations(db: Session, start_date: str, end_date: str, g
 
 
 def positive_negative_conversations(db: Session, start_date: str, end_date: str, granularity: str, token: str):
-    user = get_current_user(db, token)
+    user = crud.get_user_token(db, token)
     date_format, group_by_clause = get_date_granularity(granularity)
 
     sentiment_data = positive_negative_chart(date_format, start_date, end_date, group_by_clause, user)
@@ -203,7 +203,7 @@ def get_date_granularity(granularity):
 
 
 def highlights(db: Session, start_date, end_date, token: str):
-    user = get_current_user(db, token)
+    user = crud.get_user_token(db, token)
     sql = "SELECT sentiment_score, COUNT(post_id) as count " \
           "FROM {} " \
           "WHERE user_id = {} AND created_at between '{}' and '{}' " \
@@ -219,7 +219,7 @@ def highlights(db: Session, start_date, end_date, token: str):
 
 
 def issue_of_importance(db: Session, start_date: str, end_date: str, token: str):
-    user = get_current_user(db, token)
+    user = crud.get_user_token(db, token)
 
     issue_of_importance_data = issue_of_importance_chart(start_date, end_date, user)
 
@@ -259,7 +259,7 @@ def issue_of_importance_chart(start_date, end_date, user):
 
 
 def issue_of_severity(db: Session, start_date: str, end_date: str, token: str):
-    user = get_current_user(db, token)
+    user = crud.get_user_token(db, token)
 
     issue_of_importance_data = issue_severity_chart(start_date, end_date, user)
 
@@ -329,7 +329,7 @@ def issue_severity_chart(start_date, end_date, user):
 
 
 def ghana_locations(db: Session, start_date, end_date, token: str):  # not tested
-    user = get_current_user(db, token)
+    user = crud.get_user_token(db, token)
     country = "AND country = 'ghana'"
     country = ""
     categories_name = []
@@ -391,7 +391,7 @@ def ghana_locations(db: Session, start_date, end_date, token: str):  # not teste
 
 
 def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token: str):
-    user = get_current_user(db, token)
+    user = crud.get_user_token(db, token)
 
     sql = "SELECT text " \
           "FROM {} " \
@@ -449,7 +449,7 @@ def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token
 
 
 def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, token: str):
-    user = get_current_user(db, token)
+    user = crud.get_user_token(db, token)
 
     sql = "SELECT state, city " \
           "FROM {} " \

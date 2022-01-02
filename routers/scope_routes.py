@@ -4,16 +4,14 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 # Custom
-from controllers import scopes_controller
-from dependency.dependencies import get_user_token
+from controllers import scopes_controller, crud
 from core.models.database import SessionLocal
 from core.schemas import scopes_dto
 
 router = APIRouter(
     prefix="/scopes",
     tags=["Scopes"],
-    dependencies=[Depends(get_user_token)]
-)
+    dependencies=[Depends(crud.get_user_token)])
 
 
 #  Dependency
@@ -32,7 +30,6 @@ def get_scopes(req: Request, db: Session = Depends(get_db)):
     return all_scopes
 
 
-
 # Route to store a scope
 @router.post("/create", response_model=scopes_dto.Scope)
 def scope_create(req: Request, scope: str = Form(...), db: Session = Depends(get_db)):
@@ -40,6 +37,7 @@ def scope_create(req: Request, scope: str = Form(...), db: Session = Depends(get
     if db_scope is None:
         raise HTTPException(status_code=404, detail="Scope could not be created")
     return db_scope
+
 
 # Get a specified scope
 @router.get("/{scope_id}", response_model=scopes_dto.Scope)

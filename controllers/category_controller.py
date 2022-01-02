@@ -1,13 +1,11 @@
 # From system
 # from sqlalchemy import func
-from sqlalchemy import desc
-from sqlalchemy.sql import expression, functions
 from sqlalchemy.orm import Session
 
+from controllers import crud
+from core.models import schema
 # Custom
 from core.models.database import SessionLocal
-from core.models import schema
-from controllers.crud import get_current_user
 
 
 # Dependency
@@ -21,7 +19,7 @@ def get_db():
 
 # Get all Categories
 def get_all_categories(db: Session, token: str):
-    user = get_current_user(db, token)
+    user = crud.get_user_token(db, token)
     # Limit and offset works like pagination
     return db.query(schema.Category) \
         .join(schema.GroupCategory) \
@@ -52,7 +50,7 @@ def create_category(db: Session, category_name: str, group_category_id: int, key
 
 # Get a specific Category
 def get_category(db: Session, token: str, category_id: int):
-    user = get_current_user(db, token)
+    user = crud.get_user_token(db, token)
     return db.query(schema.Category) \
         .join(schema.GroupCategory) \
         .filter(schema.Category.id == category_id,
@@ -74,8 +72,7 @@ def update_category(db: Session, category_id: str, category_name: str, group_cat
     result = db.query(schema.Category) \
         .filter(schema.Category.id == category_id) \
         .update({"group_category_id": group_category_id,
-                 "category_name": category_name
-                 })
+                 "category_name": category_name})
     db.commit()
     if keywords:
         db.query(schema.Keyword) \
@@ -101,9 +98,8 @@ def get_category_posts(category_id: int, db: Session):
     return db.query(schema.Post) \
         .join(schema.PostAboutCategory) \
         .filter(schema.PostAboutCategory.category_id == category_id) \
-        .order_by(schema.Post.created_at.desc())\
+        .order_by(schema.Post.created_at.desc()) \
         .limit(100) \
         .all() \
         # .order_by(schema.Post.created_at.desc())
-        #.order_by(desc(schema.Post.created_at))\
-
+    # .order_by(desc(schema.Post.created_at))

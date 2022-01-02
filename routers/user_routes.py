@@ -6,13 +6,14 @@ from starlette.requests import Request
 # Custom
 from core.models.database import SessionLocal
 from controllers import crud, users_controller
-from dependency.dependencies import get_user_token
+# from dependency.dependencies import get_user_token
 from core.schemas import user_schemas_dto
+from core.models import schema
 
 router = APIRouter(
     prefix="/users",
     tags=["Users"],
-    dependencies=[Depends(get_user_token)]
+    dependencies=[Depends(crud.get_user_token)]
 )
 
 
@@ -36,7 +37,8 @@ def get_users(db: Session = Depends(get_db)):
 # Return current user data
 @router.post("/user/me", response_model=user_schemas_dto.User)
 def read_users_me(req: Request, db: Session = Depends(get_db)):
-    current_user: users.User = crud.get_current_user(db, req.headers['token'])
+    print("IS THIS BEING USED")
+    current_user: schema.User = crud.get_current_user(db, req.headers['token'])
     return current_user
 
 

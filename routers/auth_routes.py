@@ -25,7 +25,7 @@ async def get_db():
     finally:
         db.close()
 
-@router.get("/test")
+@router.get("/rules")
 def test():
     return "OK"
 

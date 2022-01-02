@@ -3,15 +3,14 @@ from typing import List
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from controllers import category_controller
+from controllers import category_controller, crud
 from core.schemas import categories_dto, posts_dto
 from core.models.database import SessionLocal
-from dependency.dependencies import get_user_token
 
 router = APIRouter(
     prefix="/categories",
     tags=["Categories"],
-    dependencies=[Depends(get_user_token)]
+    dependencies=[Depends(crud.get_user_token)]
 )
 
 
@@ -27,8 +26,8 @@ async def get_db():
 # Route to get all categories
 @router.get("", response_model=List[categories_dto.CategoryDto])
 def get_all_categories(req: Request, db: Session = Depends(get_db)):
-    categoriess = category_controller.get_all_categories(db, req.headers['token'])
-    return categoriess
+    categories = category_controller.get_all_categories(db, req.headers['token'])
+    return categories
 
 
 # Route to create a category

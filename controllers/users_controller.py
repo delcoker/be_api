@@ -8,7 +8,7 @@ from core.models import schema
 # from controllers.crud import get_current_user
 
 # from rules_controller import Rules
-# test = rules_controller.Rules()
+# rules = rules_controller.Rules()
 
 
 # Dependency
@@ -32,7 +32,7 @@ def get_db():
 #     db.add(db_scope)
 #     db.commit()
 #     db.refresh(db_scope)
-#     test.set_rules()
+#     rules.set_rules()
 #     return db_scope
 #
 #
@@ -65,5 +65,5 @@ def update_user(db: Session, user_id: int, f_name: str, l_name: str, phone: str)
 #     # get_current_user(db, token)
 #     result = db.query(users.Scope).filter(users.Scope.id == scope_id).delete()
 #     db.commit()
-#     test.set_rules()
+#     rules.set_rules()
 #     return result
