@@ -5,7 +5,8 @@ from starlette.requests import Request
 
 # Custom
 from core.models.database import SessionLocal
-from controllers import crud, users_controller
+from controllers import users_controller
+from auth import auth
 # from dependency.dependencies import get_user_token
 from core.schemas import user_schemas_dto
 from core.models import schema
@@ -13,7 +14,7 @@ from core.models import schema
 router = APIRouter(
     prefix="/users",
     tags=["Users"],
-    dependencies=[Depends(crud.get_user_token)]
+    dependencies=[Depends(auth.get_user_token)]
 )
 
 
@@ -30,7 +31,7 @@ async def get_db():
 @router.get("", response_model=List[user_schemas_dto.User])
 # def get_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 def get_users(db: Session = Depends(get_db)):
-    users = crud.get_users(db)  # skip=skip, limit=limit
+    users = auth.get_users(db)  # skip=skip, limit=limit
     return users
 
 
@@ -38,13 +39,13 @@ def get_users(db: Session = Depends(get_db)):
 @router.post("/user/me", response_model=user_schemas_dto.User)
 def read_users_me(req: Request, db: Session = Depends(get_db)):
     print("IS THIS BEING USED")
-    current_user: schema.User = crud.get_current_user(db, req.headers['token'])
+    current_user: schema.User = auth.get_current_user(db, req.headers['token'])
     return current_user
 
 
 @router.get("/{user_id}", response_model=user_schemas_dto.User)
 def read_user(user_id: int, db: Session = Depends(get_db)):
-    db_user = crud.get_user(db, user_id=user_id)
+    db_user = auth.get_user(db, user_id=user_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user

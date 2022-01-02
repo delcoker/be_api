@@ -2,7 +2,7 @@
 # from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from controllers import crud
+from auth import auth
 from core.models import schema
 # Custom
 from core.models.database import SessionLocal
@@ -19,7 +19,7 @@ def get_db():
 
 # Get all Categories
 def get_all_categories(db: Session, token: str):
-    user = crud.get_user_token(db, token)
+    user = auth.get_user_token(db, token)
     # Limit and offset works like pagination
     return db.query(schema.Category) \
         .join(schema.GroupCategory) \
@@ -50,7 +50,7 @@ def create_category(db: Session, category_name: str, group_category_id: int, key
 
 # Get a specific Category
 def get_category(db: Session, token: str, category_id: int):
-    user = crud.get_user_token(db, token)
+    user = auth.get_user_token(db, token)
     return db.query(schema.Category) \
         .join(schema.GroupCategory) \
         .filter(schema.Category.id == category_id,

@@ -2,7 +2,7 @@
 from sqlalchemy.orm import Session
 
 # Custom
-from controllers import crud
+from auth import auth
 from core.models.database import SessionLocal
 from core.models import schema
 
@@ -18,7 +18,7 @@ def get_db():
 
 # Code for creating group category
 def create_group_category(db: Session, group_category_name: str, token: str):
-    user = crud.get_user_token(db, token)
+    user = auth.get_user_token(db, token)
     db_group_category = schema.GroupCategory(
         user_id=user.id,
         group_category_name=group_category_name
@@ -31,7 +31,7 @@ def create_group_category(db: Session, group_category_name: str, token: str):
 
 # Get all Group Categories
 def get_group_categories(db: Session, token: str):
-    user = crud.get_user_token(db, token)
+    user = auth.get_user_token(db, token)
     # Limit and offset works like pagination
     return db.query(schema.GroupCategory) \
         .filter(schema.GroupCategory.user_id == user.id) \
@@ -39,7 +39,7 @@ def get_group_categories(db: Session, token: str):
 
 
 def get_group_category(db: Session, token: str, group_category_id: int):
-    user = crud.get_user_token(db, token)
+    user = auth.get_user_token(db, token)
     return db.query(schema.GroupCategory) \
         .filter(schema.GroupCategory.id == group_category_id,
                 schema.GroupCategory.user_id == user.id) \
@@ -47,7 +47,7 @@ def get_group_category(db: Session, token: str, group_category_id: int):
 
 
 def update_group_category(db: Session, group_category_id: int, group_category_name: str, token: str):
-    user = crud.get_user_token(db, token)
+    user = auth.get_user_token(db, token)
     result = db.query(schema.GroupCategory) \
         .filter(schema.GroupCategory.id == group_category_id,
                 schema.GroupCategory.user_id == user.id) \
@@ -58,7 +58,7 @@ def update_group_category(db: Session, group_category_id: int, group_category_na
 
 def delete_group_category(db: Session, group_category_id: int, token: str):
     min_amount = 2
-    crud.get_user_token(db, token)
+    auth.get_user_token(db, token)
     group_categories = get_group_categories(db, token)
     if len(group_categories) >= min_amount:
         result = db.query(schema.GroupCategory)\

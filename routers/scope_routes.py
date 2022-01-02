@@ -4,14 +4,15 @@ from sqlalchemy.orm import Session
 from starlette.requests import Request
 
 # Custom
-from controllers import scopes_controller, crud
+from controllers import scopes_controller
+from auth import auth
 from core.models.database import SessionLocal
 from core.schemas import scopes_dto
 
 router = APIRouter(
     prefix="/scopes",
     tags=["Scopes"],
-    dependencies=[Depends(crud.get_user_token)])
+    dependencies=[Depends(auth.get_user_token)])
 
 
 #  Dependency

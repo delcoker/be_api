@@ -4,14 +4,15 @@ from fastapi import APIRouter, Depends, Form
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from controllers import crud, graphs_controller
+from controllers import graphs_controller
+from auth import auth
 # Custom
 from core.models.database import SessionLocal
 
 router = APIRouter(
     prefix="/graphs",
     tags=["Graphs"],
-    dependencies=[Depends(crud.get_user_token)]
+    dependencies=[Depends(auth.get_user_token)]
 )
 
 

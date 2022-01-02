@@ -4,13 +4,14 @@ from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from controllers import group_category_controller, crud
+from controllers import group_category_controller
+from auth import auth
 from core.models.database import SessionLocal
 from core.schemas import group_categories_dto
 
 # from dependency.dependencies import get_db
 router = APIRouter(tags=["Group Categories"],
-                   dependencies=[Depends(crud.get_user_token)])
+                   dependencies=[Depends(auth.get_user_token)])
 
 
 #  Dependency

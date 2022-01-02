@@ -2,7 +2,8 @@
 from sqlalchemy.orm import Session
 
 # Custom
-from controllers import rules_controller, crud
+from controllers import rules_controller
+from auth import auth
 from core.models.database import SessionLocal
 from core.models import schema
 
@@ -21,7 +22,7 @@ def get_db():
 
 # Code for creating group category
 def create_scope(db: Session, scope: str, token: str):
-    user = crud.get_user_token(db, token)
+    user = auth.get_user_token(db, token)
     db_scope = schema.Scope(
         user_id=user.id,
         scope=scope
@@ -35,7 +36,7 @@ def create_scope(db: Session, scope: str, token: str):
 
 # Get all scopes
 def get_scopes(db: Session, token: str):
-    user = crud.get_user_token(db, token)
+    user = auth.get_user_token(db, token)
     return db.query(schema.Scope) \
         .filter(schema.Scope.user_id == user.id) \
         .all()
@@ -43,7 +44,7 @@ def get_scopes(db: Session, token: str):
 
 # Get a particular scope
 def get_scope(db: Session, token: str, scope_id: int):
-    user = crud.get_user_token(db, token)
+    user = auth.get_user_token(db, token)
     return db.query(schema.Scope) \
         .filter(schema.Scope.id == scope_id,
                 schema.Scope.user_id == user.id) \

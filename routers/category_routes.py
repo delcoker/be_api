@@ -3,14 +3,15 @@ from typing import List
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from controllers import category_controller, crud
+from controllers import category_controller
+from auth import auth
 from core.schemas import categories_dto, posts_dto
 from core.models.database import SessionLocal
 
 router = APIRouter(
     prefix="/categories",
     tags=["Categories"],
-    dependencies=[Depends(crud.get_user_token)]
+    dependencies=[Depends(auth.get_user_token)]
 )
 
 
