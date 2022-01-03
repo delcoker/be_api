@@ -34,7 +34,7 @@ ALTER TABLE `countries`
 --
 ALTER TABLE `group_categories`
     ADD PRIMARY KEY (`id`),
-    ADD KEY `user_group_categories` (`user_id`) USING BTREE;
+    ADD KEY `UserGroupCategories` (`user_id`) USING BTREE;
 
 --
 -- Indexes for table `keywords`

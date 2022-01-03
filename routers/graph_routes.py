@@ -12,7 +12,7 @@ from core.models.database import SessionLocal
 router = APIRouter(
     prefix="/graphs",
     tags=["Graphs"],
-    dependencies=[Depends(auth.get_user_token)]
+    dependencies=[Depends(auth.get_user_from_token)]
 )
 
 

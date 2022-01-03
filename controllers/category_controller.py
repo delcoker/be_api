@@ -1,25 +1,12 @@
-# From system
-# from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from auth import auth
 from core.models import schema
-# Custom
-from core.models.database import SessionLocal
-
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 # Get all Categories
 def get_all_categories(db: Session, token: str):
-    user = auth.get_user_token(db, token)
+    user = auth.get_user_from_token(db, token)
     # Limit and offset works like pagination
     return db.query(schema.Category) \
         .join(schema.GroupCategory) \
@@ -50,7 +37,7 @@ def create_category(db: Session, category_name: str, group_category_id: int, key
 
 # Get a specific Category
 def get_category(db: Session, token: str, category_id: int):
-    user = auth.get_user_token(db, token)
+    user = auth.get_user_from_token(db, token)
     return db.query(schema.Category) \
         .join(schema.GroupCategory) \
         .filter(schema.Category.id == category_id,
@@ -91,15 +78,20 @@ def delete_category(db: Session, category_id: int):
     return result
 
 
-# get post regarding the specified category
+# get posts regarding the specified category
 def get_category_posts(category_id: int, db: Session):
+
     # col_concat = functions.concat("https://www.twitter.com/", # schema.Post.data_user_name).label("link")
     # col_concat = func.concat("https://www.twitter.com/", schema.Post.data_user_name)
-    return db.query(schema.Post) \
+    sth = db.query(schema.Post) \
         .join(schema.PostAboutCategory) \
         .filter(schema.PostAboutCategory.category_id == category_id) \
+        .join(schema.PostSentimentScore) \
+        .filter(schema.PostSentimentScore.post_id == schema.Post.id) \
         .order_by(schema.Post.created_at.desc()) \
-        .limit(100) \
-        .all() \
+        .limit(50) \
+        .all()
+    print(sth)
+    return sth
         # .order_by(schema.Post.created_at.desc())
     # .order_by(desc(schema.Post.created_at))

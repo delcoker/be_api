@@ -91,9 +91,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 #     return current_user
 
 
-@app.post("/login", response_model=user_schemas_dto.Logged_In_User)
+@app.post("/login", response_model=user_schemas_dto.LoggedInUser)
 def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    user: user_schemas_dto.Logged_In_User = auth.authenticate_user(
+    user: user_schemas_dto.LoggedInUser = auth.authenticate_user(
         db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(

@@ -1,5 +1,3 @@
-from abc import ABC, ABCMeta
-
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, TIMESTAMP, types
 from sqlalchemy.orm import relationship, column_property
 
@@ -132,7 +130,7 @@ class Post(Base):
     state_name = Column(String, index=True)
     city_name = Column(String, index=True)
     created_at = Column(TIMESTAMP, index=True)
-    link = column_property('http://www.' + source_name + '.com/' + data_user_name + '/status/' + data_id)
+    link = column_property('https://www.' + source_name + '.com/' + data_user_name + '/status/' + data_id)
 
     post_getter = relationship("User", back_populates="posts")
     sentiment_scores = relationship("PostSentimentScore", back_populates="sentiment_post")

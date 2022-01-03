@@ -1,6 +1,3 @@
-# System Imports
-# from fastapi import Depends, HTTPException
-# from sqlalchemy.orm import Session
 import datetime
 
 from fastapi_sqlalchemy import db
@@ -31,6 +28,19 @@ import time
 from builtins import any as b_any
 
 load_dotenv()
+
+
+def ping_backend():
+    be_url = "https://dwm-social-media-backend.herokuapp.com"
+    time_count = 60 * 25
+    try:
+        while True:
+            # ping(be_url, verbose=True, timeout=2000)
+            print("pinging BE")
+            requests.get(be_url)
+            time.sleep(time_count)
+    except socket.error as e:
+        print("Ping Error:", e)
 
 
 # MyTwitter is inheriting from the parent class 'Rules' found in rules controller
@@ -82,18 +92,6 @@ class MyTwitter(Rules):
         self.set_rules()
         # start stream
         self.get_stream(headers)
-
-    def ping_backend(self):
-        be_url = "https://dwm-social-media-backend.herokuapp.com"
-        time_count = 60 * 25
-        try:
-            while True:
-                # ping(be_url, verbose=True, timeout=2000)
-                print("pinging BE")
-                requests.get(be_url)
-                time.sleep(time_count)
-        except socket.error as e:
-            print("Ping Error:", e)
 
     def check_post_is_about_category(self):
         while True:

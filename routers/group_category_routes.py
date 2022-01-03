@@ -11,7 +11,7 @@ from core.schemas import group_categories_dto
 
 # from dependency.dependencies import get_db
 router = APIRouter(tags=["Group Categories"],
-                   dependencies=[Depends(auth.get_user_token)])
+                   dependencies=[Depends(auth.get_user_from_token)])
 
 
 #  Dependency

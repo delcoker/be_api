@@ -39,9 +39,8 @@ class Rules:
         payload = {"delete": {"ids": ids}}
         response = requests.post(self.rules_uri, headers=headers, json=payload)
         if response.status_code != 200:
-            raise Exception(
-                "Cannot delete rules (HTTP {}): {}".format(response.status_code, response.text)
-            )
+            raise Exception("Cannot delete rules (HTTP {}): {}"
+                            .format(response.status_code, response.text))
         print(json.dumps(response.json()))
 
     # Code for setting the rules needed by twitter to start the fetch

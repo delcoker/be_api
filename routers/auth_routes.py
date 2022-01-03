@@ -9,13 +9,13 @@ from core.models.database import SessionLocal
 from auth import auth
 from core.schemas import user_schemas_dto
 
-
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('JWT_EXPIRATION_TIME'))
 
 router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
 )
+
 
 #  Dependency
 async def get_db():
@@ -25,13 +25,15 @@ async def get_db():
     finally:
         db.close()
 
+
 @router.get("/rules")
 def test():
     return "OK"
 
+
 # Create user
 @router.post("/register", response_model=user_schemas_dto.User)
-def create_user(first_name: str = Form(...), last_name: str = Form(...), email: str = Form(...), phone: str = Form(...), password: str = Form(...),  db: Session = Depends(get_db)):
+def create_user(first_name: str = Form(...), last_name: str = Form(...), email: str = Form(...), phone: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     db_user = auth.get_user_by_email(db, email=email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -40,9 +42,9 @@ def create_user(first_name: str = Form(...), last_name: str = Form(...), email: 
 
 
 # User login
-@router.post("/login", response_model=user_schemas_dto.Logged_In_User)
+@router.post("/login", response_model=user_schemas_dto.LoggedInUser)
 def login(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
-    user: user_schemas_dto.Logged_In_User = auth.authenticate_user(
+    user: user_schemas_dto.LoggedInUser = auth.authenticate_user(
         db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(

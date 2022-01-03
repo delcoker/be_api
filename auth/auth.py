@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 from dotenv import load_dotenv
-from fastapi import Depends, HTTPException, status, Header
+from fastapi import Depends, Header
 # Import OAuth2
 from fastapi.security import OAuth2PasswordBearer
 # Import JWT and authentication dependencies needed
@@ -14,8 +14,10 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 # Import model and schemas from other folders
+from controllers import users_controller
 from core.models import schema
 from core.models.database import SessionLocal
+from exceptions.CredentialsException import CredentialsException
 
 load_dotenv()
 
@@ -52,56 +54,25 @@ def get_password_hash(password):
 
 
 # Connection fetch token and verify
-def get_user_token(db: Session = Depends(get_db), token: str = Header(...)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+def get_user_from_token(db: Session = Depends(get_db), token: str = Header(...)):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         # return email
         if email is None:
-            raise credentials_exception
+            raise CredentialsException("Could not verify email.")
         token_data = email
     except JWTError:
-        raise credentials_exception
-    user = get_user_by_email(db, email=token_data)
+        raise CredentialsException("jwt error.")
+    user = users_controller.get_user_by_email(db, email=token_data)
     if user is None:
-        raise credentials_exception
+        raise CredentialsException("Could not find user.")
     return user
-
-
-def get_user_by_email(db: Session, email: str):
-    return db.query(schema.User) \
-        .filter(schema.User.email == email) \
-        .first()
-
-
-def create_user(db: Session, first_name: str, last_name: str, email: str, phone: str, password: str):
-    db_user = schema.User(
-        first_name=first_name,
-        last_name=last_name,
-        phone=phone,
-        email=email,
-        password=get_password_hash(password))
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    db_group_category = schema.GroupCategory(
-        user_id=db_user.id,
-        group_category_name="Topics"
-    )
-    db.add(db_group_category)
-    db.commit()
-    db.refresh(db_group_category)
-    return db_user
 
 
 # Authenticate and return a user
 def authenticate_user(db: Session, email: str, password: str):
-    user = get_user_by_email(db, email)
+    user = users_controller.get_user_by_email(db, email)
     if not user:
         return False
     if not verify_password(password, user.password):
@@ -114,32 +85,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=os.getenv('JWT_EXPIRATION_TIME'))
+        expire = datetime.utcnow() + timedelta(minutes=int(os.getenv('JWT_EXPIRATION_TIME')))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
 def store_user_social_account(db: Session, oauth_token: str, oauth_token_secret: str, token: str, account_name: str):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY,
-                             algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-        # token_data = TokenData(username=username)
-        token_data = email
-    except JWTError:
-        raise credentials_exception
-    # return token_data
-    user = get_user_by_email(db, email=token_data)
-    if user is None:
-        raise credentials_exception
+    user = get_user_from_token(db, token)
     # return twitter_user_details["oauth_token"]
     db_social_user = schema.SocialAccount(
         user_id=user.id,
@@ -152,15 +105,3 @@ def store_user_social_account(db: Session, oauth_token: str, oauth_token_secret:
     db.refresh(db_social_user)
     return db_social_user
 
-
-def get_user(db: Session, user_id: int):
-    # return db.query(users.User).filter(users.User.id == user_id).first()
-    return db.query(schema.User) \
-        .filter(schema.User.id == user_id) \
-        .first()
-
-
-def get_users(db: Session):  # , skip: int = 0, limit: int = 100
-    # Limit and offset works like pagination
-    # return db.query(users.User).offset(skip).limit(limit).all()
-    return db.query(schema.User).all()

@@ -11,7 +11,7 @@ from core.models.database import SessionLocal
 router = APIRouter(
     prefix="/categories",
     tags=["Categories"],
-    dependencies=[Depends(auth.get_user_token)]
+    dependencies=[Depends(auth.get_user_from_token)]
 )
 
 

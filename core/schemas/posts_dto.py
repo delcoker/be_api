@@ -15,6 +15,8 @@ class PostDto(BaseModel):
     city_name: Optional[str]
     created_at: datetime
     link: str
+    sentiment: str = "str(999)"
+
     # link: Optional[str] = "None"
 
     # @classmethod
