@@ -1,17 +1,18 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, Form
+from fastapi import APIRouter, Depends, Form
 from sqlalchemy.orm import Session
+from starlette.requests import Request
+
+from controllers import graphs_controller
+from auth import auth
 # Custom
 from core.models.database import SessionLocal
-from dependency.dependencies import get_user_token
-from controllers import crud, graphs_controller
-from starlette.requests import Request
 
 router = APIRouter(
     prefix="/graphs",
     tags=["Graphs"],
-    dependencies=[Depends(get_user_token)]
+    dependencies=[Depends(auth.get_user_from_token)]
 )
 
 

@@ -1,69 +1,56 @@
 # From system
 from sqlalchemy.orm import Session
 
-# Custom
-# from controllers import rules_controller
-from core.models.database import SessionLocal
+from auth import auth
 from core.models import schema
-# from controllers.crud import get_current_user
-
-# from rules_controller import Rules
-# test = rules_controller.Rules()
 
 
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def create_user(db: Session, first_name: str, last_name: str, email: str, phone: str, password: str):
+    db_user = schema.User(
+        first_name=first_name,
+        last_name=last_name,
+        phone=phone,
+        email=email,
+        password=auth.get_password_hash(password))
+
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    db_group_category = schema.GroupCategory(
+        user_id=db_user.id,
+        group_category_name="Topics")
+
+    db.add(db_group_category)
+    db.commit()
+    db.refresh(db_group_category)
+    return db_user
 
 
-# Code for creating group category
-
-
-# def create_scope(db: Session, scope: str, token: str):
-#     user = get_current_user(db, token)
-#     db_scope = users.Scope(
-#         user_id=user.id,
-#         scope=scope
-#     )
-#     db.add(db_scope)
-#     db.commit()
-#     db.refresh(db_scope)
-#     test.set_rules()
-#     return db_scope
-#
-#
-# # Get all Group Categories
-# def get_scopes(db: Session, token: str):
-#     user = get_current_user(db, token)
-#     return db.query(users.Scope).filter(users.Scope.user_id == user.id).all()
-#
-#
-# # Get a particular scope
-# def get_scope(db: Session, token: str, scope_id: int):
-#     user = get_current_user(db, token)
-#     return db.query(users.Scope).filter(users.Scope.id == scope_id, users.Scope.user_id == user.id).first()
-#
-
-# Update a scope
+# Update a user
 def update_user(db: Session, user_id: int, f_name: str, l_name: str, phone: str):
     result = db.query(schema.User) \
         .filter(schema.User.id == user_id) \
         .update({"first_name": f_name,
                  "last_name": l_name,
                  "phone": phone})
-
     db.commit()
     return result
 
-#
-# # Delete a scope
-# def delete_scope(db: Session, scope_id: int):
-#     # get_current_user(db, token)
-#     result = db.query(users.Scope).filter(users.Scope.id == scope_id).delete()
-#     db.commit()
-#     test.set_rules()
-#     return result
+
+def get_user(db: Session, user_id: int):
+    # return db.query(users.User).filter(users.User.id == user_id).first()
+    return db.query(schema.User) \
+        .filter(schema.User.id == user_id) \
+        .first()
+
+
+def get_users(db: Session):  # , skip: int = 0, limit: int = 100
+    # Limit and offset works like pagination
+    # return db.query(users.User).offset(skip).limit(limit).all()
+    return db.query(schema.User).all()
+
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(schema.User) \
+        .filter(schema.User.email == email) \
+        .first()

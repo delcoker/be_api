@@ -56,4 +56,4 @@ class SentimentApi:
 
 
 # x = SentimentApi()
-# x.test()
+# x.rules()

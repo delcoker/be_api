@@ -1,7 +1,7 @@
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel
-from core.schemas.keywords import Keyword
+from core.schemas.keywords_dto import Keyword
 
 
 class CategoryBase(BaseModel):
@@ -16,7 +16,7 @@ class CategoryCreate(CategoryBase):
         orm_mode = True
 
 
-class Category(CategoryCreate):
+class CategoryDto(CategoryCreate):
     id: int
     group_category_id: int
 

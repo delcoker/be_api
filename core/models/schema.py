@@ -1,7 +1,5 @@
-from abc import ABC, ABCMeta
-
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, TIMESTAMP, types
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, column_property
 
 from .database import Base
 
@@ -18,11 +16,12 @@ class User(Base):
     is_deleted = Column(Boolean, default=False)
     password = Column(String)
 
-    # These are links to the other tables so this table can fetch data from the other tables and thos tables 
+    # These are links to the other tables so this table can fetch data from the other tables and thos tables
     # can fetch data from this table. it does this via the foreign key join
     social_accounts = relationship("SocialAccount", back_populates="owner", cascade="all, delete",
                                    passive_deletes=True)  # so oncascade it should delete the data in other tables that are linked to it
-    group_categories = relationship("GroupCategory", back_populates="owner_of_group_category", cascade="all, delete", passive_deletes=True)
+    group_categories = relationship("GroupCategory", back_populates="owner_of_group_category", cascade="all, delete",
+                                    passive_deletes=True)
     scopes = relationship("Scope", back_populates="creator", cascade="all, delete", passive_deletes=True)
     posts = relationship("Post", back_populates="post_getter", cascade="all, delete", passive_deletes=True)
 
@@ -131,6 +130,7 @@ class Post(Base):
     state_name = Column(String, index=True)
     city_name = Column(String, index=True)
     created_at = Column(TIMESTAMP, index=True)
+    link = column_property('https://www.' + source_name + '.com/' + data_user_name + '/status/' + data_id)
 
     post_getter = relationship("User", back_populates="posts")
     sentiment_scores = relationship("PostSentimentScore", back_populates="sentiment_post")
@@ -171,3 +171,10 @@ class PostDataCategorisedView(Base):
     sentiment_score_value = Column(Float, index=True)
     sentiment_score = Column(String, index=True)
     created_at = Column(TIMESTAMP, index=True)
+
+# class Tweet(Base):
+#     # __tablename__ = "post_is_about_category"
+#
+#     id = Column(Integer, primary_key=True, index=True)
+#     post_id = Column(Integer, ForeignKey('posts.id'))
+#     category_id = Column(Integer, ForeignKey('categories.id'))
