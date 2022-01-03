@@ -91,7 +91,7 @@ def get_category_posts(category_id: int, db: Session):
         .order_by(schema.Post.created_at.desc()) \
         .limit(50) \
         .all()
-    print(sth)
+    # print(sth)
     return sth
         # .order_by(schema.Post.created_at.desc())
     # .order_by(desc(schema.Post.created_at))
