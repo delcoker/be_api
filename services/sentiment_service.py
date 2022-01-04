@@ -2,12 +2,12 @@
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
-class SentimentApi:
+class SentimentService:
     def __init__(self) -> None:
         self.analyzer = SentimentIntensityAnalyzer()
         # self.flair_sentiment = flair.models.TextClassifier.load("en-sentiment")
 
-    def getSentiment(self, text):
+    def get_sentiment(self, text):
         """
         positive sentiment: compound score >= 0.05
         neutral sentiment: (compound score > -0.05) and (compound score < 0.05)
@@ -52,8 +52,7 @@ class SentimentApi:
         ]
 
         for sentence in sentences:
-            self.getSentiment(sentence)
+            print(self.get_sentiment(sentence))
 
-
-# x = SentimentApi()
-# x.rules()
+# x = SentimentService()
+# x.test()

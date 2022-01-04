@@ -14,7 +14,7 @@ import socket
 # Import os and dotenv to read data from env file
 import os
 from dotenv import load_dotenv
-from dependency.vader_sentiment_api import SentimentApi
+from services.sentiment_service import SentimentService
 from core.models.database import engine
 
 # custom
@@ -196,7 +196,7 @@ class MyTwitter(Rules):
             post_to_score = self.sentiment_queue.get()
             if post_to_score:
                 # print(f"Scoring {post_to_score.id}")
-                result = SentimentApi().getSentiment(str(post_to_score.text))
+                result = SentimentService().get_sentiment(str(post_to_score.text))
 
                 db_sentiment = schema.PostSentimentScore(
                     post_id=post_to_score.id,

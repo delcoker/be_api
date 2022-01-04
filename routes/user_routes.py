@@ -5,7 +5,7 @@ from starlette.requests import Request
 
 from controllers import users_controller
 from auth import auth
-# from dependency.dependencies import get_user_token
+# from services.dependencies import get_user_token
 from core.schemas import user_schemas_dto
 from core.models import schema
 
