@@ -220,15 +220,16 @@ class MyTwitter(Rules):
             if stream_results:
                 user_location = ""
                 country_name, state_name, city_name = '', "", ''
-                if "location" in stream_results["includes"]["users"][0]:
-                    user_location = stream_results["includes"]["users"][0]["location"]
+                if "includes" in stream_results:
+                    if "location" in stream_results["includes"]["users"][0]:
+                        user_location = stream_results["includes"]["users"][0]["location"]
 
-                    # Todo: location can be done better. This only looks out for Gh location
-                    try:
-                        country_name, state_name, city_name = self.get_locations(user_location)
-                    except Exception as e:
-                        print(e)
-                        pass
+                        # Todo: location can be done better. This only looks out for Gh location
+                        try:
+                            country_name, state_name, city_name = self.get_locations(user_location)
+                        except Exception as e:
+                            print(e)
+                            pass
 
                 # Split user ids that are returned from twitter
                 user_ids = stream_results['matching_rules'][0]["tag"].split(",")

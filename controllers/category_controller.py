@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, lazyload
 
 from auth import auth
 from core.models import schema
@@ -80,18 +80,57 @@ def delete_category(db: Session, category_id: int):
 
 # get posts regarding the specified category
 def get_category_posts(category_id: int, db: Session):
+    # why doesn't this work
+    # sth = db.query(schema.Post) \
+    #     .options(joinedload(schema.Post.post_about_category)) \
+    #     .options(joinedload(schema.Post.sentiment_scores)) \
+    #     .filter(schema.PostSentimentScore.sentiment != "NEUTRAL") \
+    #     .order_by(schema.Post.created_at.desc()) \
+    #     .limit(50) \
+    #     .all()
 
-    # col_concat = functions.concat("https://www.twitter.com/", # schema.Post.data_user_name).label("link")
-    # col_concat = func.concat("https://www.twitter.com/", schema.Post.data_user_name)
+    # # returns one value
+    # sth = db.query(schema.Post) \
+    #     .join(schema.PostAboutCategory) \
+    #     .filter(schema.PostAboutCategory.category_id == category_id) \
+    #     .options(joinedload(schema.Post.sentiment_scores)) \
+    #     .filter(schema.PostSentimentScore.sentiment != "NEUTRAL") \
+    #     .order_by(schema.Post.created_at.desc()) \
+    #     .limit(50) \
+    #     .all()
+
     sth = db.query(schema.Post) \
         .join(schema.PostAboutCategory) \
         .filter(schema.PostAboutCategory.category_id == category_id) \
-        .join(schema.PostSentimentScore) \
-        .filter(schema.PostSentimentScore.post_id == schema.Post.id) \
+        .options(joinedload(schema.Post.sentiment_scores)) \
         .order_by(schema.Post.created_at.desc()) \
         .limit(50) \
         .all()
+
+    for post in sth:
+        post.sentiment = post.sentiment_scores[0].sentiment
+
+    # col_concat = functions.concat("https://www.twitter.com/", # schema.Post.data_user_name).label("link")
+    # col_concat = func.concat("https://www.twitter.com/", schema.Post.data_user_name)
+    # sth = db.query(schema.Post.id,
+    #                schema.Post.data_user_name,
+    #                schema.Post.source_name,
+    #                schema.Post.state_name,
+    #                schema.Post.data_author_id,
+    #                schema.Post.data_user_location,
+    #                schema.Post.country_name,
+    #                schema.Post.text,
+    #                schema.Post.city_name,
+    #                schema.Post.created_at,
+    #                schema.Post.link,
+    #                schema.PostAboutCategory.category_id,
+    #                schema.PostSentimentScore.sentiment) \
+    #     .join(schema.PostAboutCategory) \
+    #     .filter(schema.PostAboutCategory.category_id == category_id) \
+    #     .join(schema.PostSentimentScore) \
+    #     .filter(schema.PostSentimentScore.sentiment != "NEUTRAL") \
+    #     .order_by(schema.Post.created_at.desc()) \
+    #     .limit(50) \
+    #     .all()
     # print(sth)
     return sth
-        # .order_by(schema.Post.created_at.desc())
-    # .order_by(desc(schema.Post.created_at))

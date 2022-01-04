@@ -1,7 +1,33 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 from datetime import datetime
+
+
+# from core.models.schema import PostSentimentScore
+
+# class PostSentimentScore(BaseModel):
+#     sentiment_scores: List
+#
+#     class Config:
+#         orm_mode = True
+
+
+# from core.models import schema
+
+# "sentiment_scores": [
+#       {
+#         "post_id": 323069,
+#         "sentiment": "NEGATIVE",
+#         "id": 119,
+#         "score": -0.0895
+#       }
+#     ]
+
+
+# def fo(f):
+#     print("errrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
+#     return "rand"
 
 
 class PostDto(BaseModel):
@@ -15,7 +41,12 @@ class PostDto(BaseModel):
     city_name: Optional[str]
     created_at: datetime
     link: str
-    sentiment: str = "str(999)"
+    sentiment: str
+
+    # sentiment_scores: List[PostSentimentScore] = None
+    # sentiment_scores: PostSentimentScore
+
+    # sentiment: BaseModel.schema(sentiment_scores)
 
     # link: Optional[str] = "None"
 
@@ -27,11 +58,10 @@ class PostDto(BaseModel):
         orm_mode = True
 
 #
-# class PostCreate(PostBase):
-#
-#     class Config:
-#         orm_mode = True
-#
+# def those_things(any_variable: PostDto):
+#     sentiment_scores = any_variable.sentiment_scores.sentiment
+#     return sentiment_scores
+
 #
 # class Post(PostCreate):
 #     id: int
@@ -54,6 +84,6 @@ class PostDto(BaseModel):
 #     city_name = Column(String, index=True)
 #     created_at = Column(TIMESTAMP, index=True)
 #
-#     post_getter = relationship("User", back_populates="posts")
+#     post_user = relationship("User", back_populates="posts")
 #     sentiment_scores = relationship("PostSentimentScore", back_populates="sentiment_post")
 #

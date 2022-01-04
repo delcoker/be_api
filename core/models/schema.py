@@ -23,7 +23,7 @@ class User(Base):
     group_categories = relationship("GroupCategory", back_populates="owner_of_group_category", cascade="all, delete",
                                     passive_deletes=True)
     scopes = relationship("Scope", back_populates="creator", cascade="all, delete", passive_deletes=True)
-    posts = relationship("Post", back_populates="post_getter", cascade="all, delete", passive_deletes=True)
+    posts = relationship("Post", back_populates="post_user", cascade="all, delete", passive_deletes=True)
 
 
 class SocialAccount(Base):
@@ -132,8 +132,9 @@ class Post(Base):
     created_at = Column(TIMESTAMP, index=True)
     link = column_property('https://www.' + source_name + '.com/' + data_user_name + '/status/' + data_id)
 
-    post_getter = relationship("User", back_populates="posts")
+    post_user = relationship("User", back_populates="posts")
     sentiment_scores = relationship("PostSentimentScore", back_populates="sentiment_post")
+    post_about_category = relationship("PostAboutCategory", back_populates="posts")
 
 
 class PostSentimentScore(Base):
@@ -155,7 +156,7 @@ class PostAboutCategory(Base):
     category_id = Column(Integer, ForeignKey('categories.id'))
 
     # category = relationship("Category", back_populates="post_is_about_category")
-    # post_getter = relationship("Post", back_populates="posts")
+    posts = relationship("Post", back_populates="post_about_category")
 
 
 class PostDataCategorisedView(Base):
