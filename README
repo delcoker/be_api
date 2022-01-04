@@ -1,1 +1,6 @@
-Document challenges
+Document challenges:
+
+1) Disable foreign key check during delete  -> SET foreign_key_checks = 0;
+2) Delete your records                      -> DELETE FROM table_name WHERE {conditions};
+3) Enable foreign key check                 -> SET foreign_key_checks = 1;
+
