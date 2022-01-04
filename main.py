@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 
 # Routes
-from routers import auth_routes, group_category_routes, category_routes, scope_routes, user_routes, graph_routes
+from routes import auth_routes, group_category_routes, category_routes, scope_routes, user_routes, graph_routes
 
 # Middleware
 from fastapi.middleware.cors import CORSMiddleware
