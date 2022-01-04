@@ -5,6 +5,7 @@ from datetime import timedelta
 from sqlalchemy.orm import Session
 
 # Custom
+from controllers import users_controller
 from core.models.database import SessionLocal
 from auth import auth
 from core.schemas import user_schemas_dto
@@ -34,10 +35,10 @@ def test():
 # Create user
 @router.post("/register", response_model=user_schemas_dto.User)
 def create_user(first_name: str = Form(...), last_name: str = Form(...), email: str = Form(...), phone: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    db_user = auth.get_user_by_email(db, email=email)
+    db_user = users_controller.get_user_by_email(db, email=email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    created_user = auth.create_user(db, first_name, last_name, email, phone, password)
+    created_user = users_controller.create_user(db, first_name, last_name, email, phone, password)
     return created_user  # , "status_code": 200
 
 
