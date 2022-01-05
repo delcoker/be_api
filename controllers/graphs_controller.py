@@ -443,8 +443,8 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
           "FROM {} " \
           "WHERE user_id = {} " \
           "AND (state <> '' or city <> '') " \
-          'AND country = "ghana" ' \
           "AND created_at BETWEEN '{}' AND '{}' ".format(view_in_use, user.id, start_date, end_date)
+    # 'AND country = "ghana" ' \
 
     tweet_data = engine.execute(sql)
 
