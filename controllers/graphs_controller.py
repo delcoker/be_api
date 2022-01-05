@@ -273,6 +273,7 @@ def issue_severity_chart(start_date, end_date, user):
           "ORDER BY importance DESC".format(view_in_use, view_in_use, user.id, start_date, end_date)
 
     issue_severity_data = engine.execute(sql)
+    # print(issue_severity_data)
 
     for category_name, importance, sentiment_score in issue_severity_data:
         if category_name not in categories_name:
@@ -316,11 +317,11 @@ def issue_severity_chart(start_date, end_date, user):
     return issue_severity_data_chart
 
 
-def ghana_locations(db: Session, start_date, end_date, token: str):  # not tested
+def ghana_locations_for_map(db: Session, start_date, end_date, token: str):
     user = auth.get_user_from_token(db, token)
-    country = "AND country = 'ghana'"
+    # country = "AND country = 'ghana'"
     country = ""
-    categories_name = []
+    category_names = []
     positive_data = {}
     negative_data = {}
     neutral_dict = {}
@@ -328,25 +329,28 @@ def ghana_locations(db: Session, start_date, end_date, token: str):  # not teste
     negative_array_data = []
     neutral_series_data = []
 
-    sql = "SELECT categories.category_name, state, city, COUNT(city) as 'city_count' " \
+    sql = "SELECT categories.category_name, city, COUNT(city) as 'count_in_city', sentiment_score " \
           "FROM {} " \
           "JOIN categories ON {}.category_id = categories.id " \
-          "WHERE user_id = {} AND created_at between '{}' AND '{}' {}" \
-          "GROUP BY categories.category_name, city, 'city_count';".format(view_in_use, view_in_use, user.id, start_date, end_date, country)
-
+          "WHERE user_id = {} " \
+          "AND created_at between '{}' " \
+          "AND '{}'" \
+          " {}" \
+          "GROUP BY categories.category_name, city, 'count_in_city';".format(view_in_use, view_in_use, user.id, start_date, end_date, country)
+    # print(sql)
     locations = engine.execute(sql)
 
-    for category_name, importance, sentiment_score in locations:
-        if category_name not in categories_name:
-            categories_name.append(category_name)
+    for category_name, city, count_in_city, sentiment_score in locations:
+        if category_name not in category_names:
+            category_names.append(category_name)
         if sentiment_score == "POSITIVE":
-            positive_data[category_name] = importance
+            positive_data[category_name] = count_in_city
         elif sentiment_score == "NEGATIVE":
-            negative_data[category_name] = importance
+            negative_data[category_name] = count_in_city
         elif sentiment_score == "NEUTRAL":
-            neutral_dict[category_name] = importance
+            neutral_dict[category_name] = count_in_city
 
-    for category_name in categories_name:
+    for category_name in category_names:
         if category_name in positive_data:
             positive_array_data.append(positive_data[category_name])
         else:
@@ -367,7 +371,7 @@ def ghana_locations(db: Session, start_date, end_date, token: str):  # not teste
               {"name": 'Negative', "data": negative_array_data},
               {"name": 'Neutral', "data": neutral_series_data}]
     title = {"text": 'Location'}
-    xAxis = {"categories": categories_name}
+    xAxis = {"categories": category_names}
     tooltip = get_tool_tip_format()
     plot_options = get_stacked_bar_plot_options()
     exporting = {'enabled': True}
@@ -378,7 +382,7 @@ def ghana_locations(db: Session, start_date, end_date, token: str):  # not teste
     return locations_chart
 
 
-def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token: str):
+def get_word_cloud_tweets(db: Session, start_date: str, end_date: str, token: str):
     user = auth.get_user_from_token(db, token)
 
     sql = "SELECT text " \
@@ -436,7 +440,7 @@ def get_word_cloud_for_tweets(db: Session, start_date: str, end_date: str, token
     }
 
 
-def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, token: str):
+def get_word_cloud_locations(db: Session, start_date: str, end_date: str, token: str):
     user = auth.get_user_from_token(db, token)
 
     sql = "SELECT state, city " \
@@ -455,8 +459,8 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
     all_stop_words = stop_words.stop_words + stop_words_custom.stop_words
 
     for data in tweet_data:
-        word_state = data.state.decode()
-        word_city = data.city.decode()
+        word_state = data.state  # .decode()
+        word_city = data.city  # .decode()
         word_array_dirty = [str(word_state)] + [str(word_city)]
         word_array = []
 
@@ -481,7 +485,7 @@ def get_word_cloud_for_locations(db: Session, start_date: str, end_date: str, to
                 {'text': "ha ha ha", 'value': 20, },
                 ]
 
-    return {'title': '🇬🇭 .gh locations',
+    return {'title': '🇬🇭 locations',
             'value': [{'text': k, 'value': v} for (k, v) in frequencies.items()]}
 
 # def get_word_cloud_for_keywords(db: Session, start_date: str, end_date: str): #, token: str
