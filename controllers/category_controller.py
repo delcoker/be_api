@@ -99,38 +99,38 @@ def get_category_posts(category_id: int, db: Session):
     #     .limit(50) \
     #     .all()
 
-    sth = db.query(schema.Post) \
-        .join(schema.PostAboutCategory) \
-        .filter(schema.PostAboutCategory.category_id == category_id) \
-        .options(joinedload(schema.Post.sentiment_scores)) \
-        .order_by(schema.Post.created_at.desc()) \
-        .limit(50) \
-        .all()
-
-    for post in sth:
-        post.sentiment = post.sentiment_scores[0].sentiment
-
-    # col_concat = functions.concat("https://www.twitter.com/", # schema.Post.data_user_name).label("link")
-    # col_concat = func.concat("https://www.twitter.com/", schema.Post.data_user_name)
-    # sth = db.query(schema.Post.id,
-    #                schema.Post.data_user_name,
-    #                schema.Post.source_name,
-    #                schema.Post.state_name,
-    #                schema.Post.data_author_id,
-    #                schema.Post.data_user_location,
-    #                schema.Post.country_name,
-    #                schema.Post.text,
-    #                schema.Post.city_name,
-    #                schema.Post.created_at,
-    #                schema.Post.link,
-    #                schema.PostAboutCategory.category_id,
-    #                schema.PostSentimentScore.sentiment) \
+    # sth = db.query(schema.Post) \
     #     .join(schema.PostAboutCategory) \
     #     .filter(schema.PostAboutCategory.category_id == category_id) \
-    #     .join(schema.PostSentimentScore) \
-    #     .filter(schema.PostSentimentScore.sentiment != "NEUTRAL") \
+    #     .options(joinedload(schema.Post.sentiment_scores)) \
     #     .order_by(schema.Post.created_at.desc()) \
     #     .limit(50) \
     #     .all()
+    #
+    # for post in sth:
+    #     post.sentiment = post.sentiment_scores[0].sentiment
+
+    # col_concat = functions.concat("https://www.twitter.com/", # schema.Post.data_user_name).label("link")
+    # col_concat = func.concat("https://www.twitter.com/", schema.Post.data_user_name)
+    sth = db.query(schema.Post.id,
+                   schema.Post.data_user_name,
+                   schema.Post.source_name,
+                   schema.Post.state_name,
+                   schema.Post.data_author_id,
+                   schema.Post.data_user_location,
+                   schema.Post.country_name,
+                   schema.Post.text,
+                   schema.Post.city_name,
+                   schema.Post.created_at,
+                   schema.Post.link,
+                   schema.PostAboutCategory.category_id,
+                   schema.PostSentimentScore.sentiment) \
+        .join(schema.PostAboutCategory) \
+        .filter(schema.PostAboutCategory.category_id == category_id) \
+        .join(schema.PostSentimentScore) \
+        .filter(schema.PostSentimentScore.sentiment != "NEUTRAL") \
+        .order_by(schema.Post.created_at.desc()) \
+        .limit(50) \
+        .all()
     # print(sth)
     return sth
