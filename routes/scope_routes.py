@@ -1,27 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, Form
 from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-# Custom
-from controllers import scopes_controller
 from auth import auth
-from core.models.database import SessionLocal
+# Custom
+from auth.auth import get_db
+from controllers import scopes_controller
 from core.schemas import scopes_dto
 
 router = APIRouter(
     prefix="/scopes",
     tags=["Scopes"],
     dependencies=[Depends(auth.get_user_from_token)])
-
-
-#  Dependency
-async def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 # Route to get scopes

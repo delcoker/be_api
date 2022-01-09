@@ -5,8 +5,8 @@ from datetime import timedelta
 from sqlalchemy.orm import Session
 
 # Custom
+from auth.auth import get_db
 from controllers import users_controller
-from core.models.database import SessionLocal
 from auth import auth
 from core.schemas import user_schemas_dto
 
@@ -16,15 +16,6 @@ router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
 )
-
-
-#  Dependency
-async def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.get("/rules")

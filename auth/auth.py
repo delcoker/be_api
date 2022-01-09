@@ -20,17 +20,6 @@ from core.models.database import SessionLocal
 from exceptions.CredentialsException import CredentialsException
 
 load_dotenv()
-
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 # to get a string like this run:
 # openssl rand -hex 32
 SECRET_KEY = os.getenv('JWT_SECRET_KEY')
@@ -42,6 +31,15 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # Instance of OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="login")  # URL that the client will use to send details in order to get a token
+
+
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 # Utility to verify if a received password matches the hash stored
@@ -104,4 +102,3 @@ def store_user_social_account(db: Session, oauth_token: str, oauth_token_secret:
     db.commit()
     db.refresh(db_social_user)
     return db_social_user
-

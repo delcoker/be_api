@@ -1,27 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException, Form
 from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from controllers import category_controller
 from auth import auth
+from auth.auth import get_db
+from controllers import category_controller
 from core.schemas import categories_dto, posts_dto
-from core.models.database import SessionLocal
 
 router = APIRouter(
     prefix="/categories",
     tags=["Categories"],
     dependencies=[Depends(auth.get_user_from_token)]
 )
-
-
-#  Dependency
-async def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 # Route to get all categories

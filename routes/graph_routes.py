@@ -4,25 +4,17 @@ from fastapi import APIRouter, Depends, Form
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from controllers import graphs_controller
 from auth import auth
+from auth.auth import get_db
+from controllers import graphs_controller
+
 # Custom
-from core.models.database import SessionLocal
 
 router = APIRouter(
     prefix="/graphs",
     tags=["Graphs"],
     dependencies=[Depends(auth.get_user_from_token)]
 )
-
-
-#  Dependency
-async def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post("/collected_conversations")

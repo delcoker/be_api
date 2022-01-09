@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Form
 from sqlalchemy.orm import Session
 from starlette.requests import Request
 
-from controllers import group_category_controller
 from auth import auth
-from core.models.database import SessionLocal
+from auth.auth import get_db
+from controllers import group_category_controller
 from core.schemas import group_categories_dto
 
 # from services.dependencies import get_db
@@ -14,20 +14,12 @@ router = APIRouter(tags=["Group Categories"],
                    dependencies=[Depends(auth.get_user_from_token)])
 
 
-#  Dependency
-async def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 # Route to store group categories
 @router.post("/group/category/create", response_model=group_categories_dto.GroupCategoryList)
 def group_category_create(req: Request, group_category_name: str = Form(...), db: Session = Depends(get_db)):
     db_group_category = group_category_controller.create_group_category(
         db, group_category_name, req.headers['token'])
+    print(db_group_category)
     if db_group_category is None:
         raise HTTPException(status_code=404, detail="Group Category could not be created")
     return db_group_category
