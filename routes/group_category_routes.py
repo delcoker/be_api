@@ -19,7 +19,6 @@ router = APIRouter(tags=["Group Categories"],
 def group_category_create(req: Request, group_category_name: str = Form(...), db: Session = Depends(get_db)):
     db_group_category = group_category_controller.create_group_category(
         db, group_category_name, req.headers['token'])
-    print(db_group_category)
     if db_group_category is None:
         raise HTTPException(status_code=404, detail="Group Category could not be created")
     return db_group_category
