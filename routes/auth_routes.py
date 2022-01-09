@@ -18,7 +18,7 @@ router = APIRouter(
 )
 
 
-@router.get("/rules")
+@router.get("/test")
 def test():
     return "OK"
 
